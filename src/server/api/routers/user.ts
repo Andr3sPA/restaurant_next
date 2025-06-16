@@ -19,7 +19,7 @@ export const userRouter = createTRPCRouter(
       userFromDb = await ctx.db.user.findUniqueOrThrow({
         where: { email: input.email  },
       });
-    } catch (error) {
+    } catch {
       throw new TRPCError({
         code: 'NOT_FOUND',
         message: 'User not found.',

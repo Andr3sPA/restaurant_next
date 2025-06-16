@@ -35,7 +35,7 @@ export function LoginForm({
       return
     }
     setResponse({ status: "loading", info: "Iniciando sesión..." }) // Provide loading info
-    signIn("credentials", {
+    void signIn("credentials", {
       email,
       password,
       redirect: false,
