@@ -73,7 +73,7 @@ model MenuItem {
   available   Boolean    @default(true)
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
-
+  image       String?
   orderItems  OrderItem[]
 }
 
