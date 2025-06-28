@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label"
 import React, { useState } from "react" // Import React and useState
 import { signIn } from "next-auth/react" // Import signIn
 import { toast } from "sonner"
-import router from "next/router";
+import { useRouter } from "next/navigation";
 export function LoginForm({
   className,
   ...props
@@ -18,6 +18,7 @@ export function LoginForm({
     status: "",
     info: "",
   })
+  const router = useRouter()
 
   const isValidEmail = (email: string) => {
     // Basic email validation regex
@@ -55,7 +56,7 @@ export function LoginForm({
         })
       } else {
         setResponse({ status: "ok", info: "Inicio de sesión exitoso!" })
-        router.push('/'); 
+        void router.push('/'); 
       }
     })
   }
