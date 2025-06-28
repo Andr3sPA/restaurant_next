@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label"
 import React, { useState } from "react" // Import React and useState
 import { signIn } from "next-auth/react" // Import signIn
 import { toast } from "sonner"
+import router from "next/router";
 export function LoginForm({
   className,
   ...props
@@ -54,7 +55,7 @@ export function LoginForm({
         })
       } else {
         setResponse({ status: "ok", info: "Inicio de sesión exitoso!" })
-        // router.push('/'); // Optional: redirect on success if useRouter is imported and configured
+        router.push('/'); 
       }
     })
   }
