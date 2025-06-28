@@ -5,6 +5,7 @@ import { Geist } from "next/font/google";
 
 import { TRPCReactProvider } from "@/trpc/react";
 import { Toaster } from "@/components/ui/sonner";
+import { Navbar1 } from "@/components/navbar1";
 
 export const metadata: Metadata = {
   title: "Create T3 App",
@@ -22,7 +23,10 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${geist.variable}`}>
+      
+      
       <body>
+        <Navbar1/>
         <TRPCReactProvider>{children}</TRPCReactProvider>
         <Toaster />
       </body>
