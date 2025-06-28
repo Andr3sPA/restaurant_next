@@ -39,7 +39,6 @@ export const userRouter = createTRPCRouter(
   }),
     registerUser: publicProcedure
         .input(z.object({   
-            name: z.string(),
             email: z.string().email(),
             password: z.string().min(8, { message: "Password must be at least 8 characters long" })
               .regex(/[A-Z]/, { message: "Password must contain at least one uppercase letter" })
@@ -49,7 +48,6 @@ export const userRouter = createTRPCRouter(
         .mutation(async ({ ctx, input }) => {
           return ctx.db.user.create({
             data: {
-                name: input.name,
                 email: input.email,
                 password: await bcrypt.hash(input.password, 10),
             },

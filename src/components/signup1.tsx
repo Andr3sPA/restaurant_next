@@ -35,7 +35,6 @@ const Signup1 = ({
   loginText = "Already have an account?",
   loginUrl = "/login", // Changed default login URL to be more specific
 }: Signup1Props) => {
-  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter(); // Added
@@ -54,7 +53,7 @@ const Signup1 = ({
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    mutate({ name, email, password });
+    mutate({ email, password });
   };
 
   return (
@@ -82,22 +81,6 @@ const Signup1 = ({
           </div>
           <div className="flex w-full flex-col gap-8">
             <div className="flex flex-col gap-4">
-              <div className="flex flex-col gap-2">
-                <Input
-                  type="text"
-                  name="name" // Added name attribute
-                  placeholder="Name"
-                  required
-                  className="bg-white"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
-                {error?.data?.zodError?.fieldErrors.name && (
-                  <span className="text-xs text-red-500">
-                    {error.data.zodError.fieldErrors.name}
-                  </span>
-                )}
-              </div>
               <div className="flex flex-col gap-2">
                 <Input
                   type="email"

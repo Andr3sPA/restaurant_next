@@ -69,6 +69,7 @@ model MenuItem {
   id          String     @id @default(cuid())
   name        String
   description String?
+  currency    String
   price       Float
   available   Boolean    @default(true)
   createdAt   DateTime   @default(now())
