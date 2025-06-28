@@ -41,7 +41,7 @@ export default tseslint.config(
     },
     languageOptions: {
       parserOptions: {
-        projectService: true,
+        // projectService: true,
       },
     },
   },
