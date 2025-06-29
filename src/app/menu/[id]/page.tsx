@@ -10,7 +10,7 @@ export default async function MenuItemPage({
   const item = await api.menu.getMenuItemDetails(id);
 
   return (
-    <div className="flex h-dvh items-center justify-center">
+    <div className="my-16 flex items-center justify-center">
       {item ? (
         <MenuItemDetails
           title={item.name}
