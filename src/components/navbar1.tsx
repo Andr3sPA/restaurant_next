@@ -1,7 +1,7 @@
 import { Book, Menu, Sunset, Trees, Zap } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-
+import ShoppinCart from "@/components/shoppingCart";
 import { auth as getAuth } from "@/server/auth";
 import {
   Accordion,
@@ -47,44 +47,15 @@ interface Navbar1Props {
 
 const Navbar1 = async ({
   logo = {
-    url: "https://www.shadcnblocks.com",
+    url: "/",
     src: "https://deifkwefumgah.cloudfront.net/shadcnblocks/block/logos/shadcnblockscom-icon.svg",
     alt: "logo",
     title: "Shadcnblocks.com",
   },
   menu = [
-    { title: "Home", url: "#" },
-    {
-      title: "Products",
-      url: "#",
-      items: [
-        {
-          title: "Blog",
-          description: "The latest industry news, updates, and info",
-          icon: <Book className="size-5 shrink-0" />,
-          url: "#",
-        },
-        {
-          title: "Company",
-          description: "Our mission is to innovate and empower the world",
-          icon: <Trees className="size-5 shrink-0" />,
-          url: "#",
-        },
-        {
-          title: "Careers",
-          description: "Browse job listing and discover our workspace",
-          icon: <Sunset className="size-5 shrink-0" />,
-          url: "#",
-        },
-        {
-          title: "Support",
-          description:
-            "Get in touch with our support team or visit our community forums",
-          icon: <Zap className="size-5 shrink-0" />,
-          url: "#",
-        },
-      ],
-    },
+    { title: "Home", url: "/" },
+    { title: "Inventario", url: "/menu/inventory" },
+    { title: "Añadir plato", url: "/menu/register" },
     {
       title: "Resources",
       url: "#",
@@ -114,14 +85,6 @@ const Navbar1 = async ({
           url: "#",
         },
       ],
-    },
-    {
-      title: "Pricing",
-      url: "#",
-    },
-    {
-      title: "Blog",
-      url: "#",
     },
   ],
 }: Navbar1Props) => {
@@ -154,7 +117,9 @@ const Navbar1 = async ({
               </NavigationMenu>
             </div>
           </div>
+          
           <div className="flex items-center gap-2">
+            <ShoppinCart />
             <DarkModeSwitch />
             <Button asChild variant="outline" size="sm">
               <Link href={session ? "/api/auth/signout" : "/user/signin"}>

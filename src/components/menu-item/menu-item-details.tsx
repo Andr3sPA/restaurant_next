@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "../ui/card";
 import { MotionDiv } from "../motionDiv";
 
+import { useEffect, useState } from "react";
 const DEFAULT_IMAGE_URL =
   "https://raw.githubusercontent.com/stackzero-labs/ui/refs/heads/main/public/placeholders/headphone-4.jpg";
 
@@ -23,7 +24,6 @@ interface MenuItemDetailsProps {
   shippingText?: string;
   price?: number;
   prefix?: string;
-  onAddToCart?: () => void;
   onBuyNow?: () => void;
 }
 
@@ -33,7 +33,6 @@ function MenuItemDetails({
   hasShipping,
   imageUrl = DEFAULT_IMAGE_URL,
   inStock,
-  onAddToCart,
   onBuyNow: onOrderNow,
   prefix,
   price,
@@ -43,6 +42,47 @@ function MenuItemDetails({
   stockCount,
   title,
 }: MenuItemDetailsProps) {
+  const [cartItems, setCartItems] = useState<Array<{
+    description?: string;
+    imageUrl: string;
+    prefix?: string;
+    price?: number;
+    title?: string;
+  }>>([]);
+
+  useEffect(() => {
+    const existingItems = localStorage.getItem("cartItems");
+    if (existingItems) {
+      try {
+        const parsedItems = JSON.parse(existingItems);
+        if (Array.isArray(parsedItems)) {
+          setCartItems(parsedItems);
+        }
+      } catch (error) {
+        console.error("Error parsing cart items from localStorage:", error);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (cartItems.length > 0) {
+      localStorage.setItem("cartItems", JSON.stringify(cartItems));
+    }
+  }, [cartItems]);
+
+  const handleAddToCart = () => {
+    const itemToSave = {
+      description,
+      imageUrl,
+      prefix,
+      price,
+      title,
+    };
+    
+    setCartItems(prevItems => [...prevItems, itemToSave]);
+    
+    window.dispatchEvent(new Event('cartUpdated'));
+  };
   return (
     <MotionDiv>
       <Card>
@@ -111,7 +151,7 @@ function MenuItemDetails({
                 variant="outline"
                 size="lg"
                 className="w-full md:w-fit"
-                onClick={onAddToCart}
+                onClick={handleAddToCart}
               >
                 Add to cart
               </Button>
