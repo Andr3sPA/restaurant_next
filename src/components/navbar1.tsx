@@ -25,7 +25,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { Switch } from "./ui/switch";
 import { DarkModeSwitch } from "./darkModeSwitch";
 
 interface MenuItem {

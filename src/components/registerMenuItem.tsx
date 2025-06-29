@@ -2,6 +2,7 @@
 import {
   useState
 } from "react"
+import * as React from "react"
 import {
   toast
 } from "sonner"
@@ -40,14 +41,19 @@ import {
   CurrencySelect
 } from "@/components/ui/currency-select"
 import {
-  CloudUpload,
-  Paperclip
+  Upload,
+  X
 } from "lucide-react"
 import {
-  FileInput,
-  FileUploader,
-  FileUploaderContent,
-  FileUploaderItem
+  FileUpload,
+  FileUploadDropzone,
+  FileUploadItem,
+  FileUploadItemDelete,
+  FileUploadItemMetadata,
+  FileUploadItemPreview,
+  FileUploadItemProgress,
+  FileUploadList,
+  FileUploadTrigger,
 } from "@/components/ui/file-upload"
 import { api } from "@/trpc/react"
 
@@ -85,16 +91,68 @@ export default function MyForm() {
     decimals: 2,
     number: "170"
   });
-  const [files, setFiles] = useState<File[] | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
 
-  const dropZoneConfig = {
-    maxFiles: 1,
-    maxSize: MAX_FILE_SIZE,
-    multiple: false,
-    accept: {
-      "image/*": [".jpeg", ".jpg", ".png", ".webp"]
-    }
-  };
+  const onUpload = React.useCallback(
+    async (
+      files: File[],
+      {
+        onProgress,
+        onSuccess,
+        onError,
+      }: {
+        onProgress: (file: File, progress: number) => void;
+        onSuccess: (file: File) => void;
+        onError: (file: File, error: Error) => void;
+      },
+    ) => {
+      try {
+        // Process each file individually
+        const uploadPromises = files.map(async (file) => {
+          try {
+            // Simulate file upload with progress
+            const totalChunks = 10;
+            let uploadedChunks = 0;
+ 
+            // Simulate chunk upload with delays
+            for (let i = 0; i < totalChunks; i++) {
+              // Simulate network delay (100-300ms per chunk)
+              await new Promise((resolve) =>
+                setTimeout(resolve, Math.random() * 200 + 100),
+              );
+ 
+              // Update progress for this specific file
+              uploadedChunks++;
+              const progress = (uploadedChunks / totalChunks) * 100;
+              onProgress(file, progress);
+            }
+ 
+            // Simulate server processing delay
+            await new Promise((resolve) => setTimeout(resolve, 500));
+            onSuccess(file);
+          } catch (error) {
+            onError(
+              file,
+              error instanceof Error ? error : new Error("Upload failed"),
+            );
+          }
+        });
+ 
+        // Wait for all uploads to complete
+        await Promise.all(uploadPromises);
+      } catch (error) {
+        // This handles any error that might occur outside the individual upload processes
+        console.error("Unexpected error during upload:", error);
+      }
+    },
+    [],
+  );
+ 
+  const onFileReject = React.useCallback((file: File, message: string) => {
+    toast(message, {
+      description: `"${file.name.length > 20 ? `${file.name.slice(0, 20)}...` : file.name}" has been rejected`,
+    });
+  }, []);
 
   const form = useForm < z.infer < typeof formSchema >> ({
     resolver: zodResolver(formSchema),
@@ -110,7 +168,7 @@ export default function MyForm() {
       onSuccess: () => {
         toast.success("Menu item registered successfully!");
         form.reset();
-        setFiles(null);
+        setFiles([]);
       },
       onError: (error) => {
         toast.error(`Registration failed: ${error.message}`);
@@ -198,42 +256,57 @@ export default function MyForm() {
               <FormItem>
                 <FormLabel>Menu Item Image</FormLabel>
                 <FormControl>
-                  <FileUploader
+                  <FileUpload
                     value={files}
                     onValueChange={(newFiles) => {
                       setFiles(newFiles);
                       // Also update the form field for validation
                       field.onChange(newFiles);
                     }}
-                    dropzoneOptions={dropZoneConfig}
-                    className="relative bg-background rounded-lg p-2"
+                    maxFiles={1}
+                    maxSize={MAX_FILE_SIZE}
+                    className="w-full"
+                    onUpload={onUpload}
+                    onFileReject={onFileReject}
+                    multiple={false}
+                    accept="image/*"
                   >
-                    <FileInput
-                      id="fileInput"
-                      className="outline-dashed outline-1 outline-slate-500"
-                    >
-                      <div className="flex items-center justify-center flex-col p-8 w-full">
-                        <CloudUpload className='text-gray-500 w-10 h-10' />
-                        <p className="mb-1 text-sm text-gray-500 dark:text-gray-400">
-                          <span className="font-semibold">Click to upload</span>
-                          &nbsp; or drag and drop
-                        </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                          PNG, JPG, JPEG or WEBP (max 5MB)
+                    <FileUploadDropzone>
+                      <div className="flex flex-col items-center gap-1 text-center">
+                        <div className="flex items-center justify-center rounded-full border p-2.5">
+                          <Upload className="size-6 text-muted-foreground" />
+                        </div>
+                        <p className="font-medium text-sm">Drag & drop image here</p>
+                        <p className="text-muted-foreground text-xs">
+                          Or click to browse (PNG, JPG, JPEG or WEBP, max 5MB)
                         </p>
                       </div>
-                    </FileInput>
-                    <FileUploaderContent>
-                      {files &&
-                        files.length > 0 &&
-                        files.map((file, i) => (
-                          <FileUploaderItem key={i} index={i}>
-                            <Paperclip className="h-4 w-4 stroke-current" />
-                            <span>{file.name}</span>
-                          </FileUploaderItem>
-                        ))}
-                    </FileUploaderContent>
-                  </FileUploader>
+                      <FileUploadTrigger asChild>
+                        <Button variant="outline" size="sm" className="mt-2 w-fit">
+                          Browse images
+                        </Button>
+                      </FileUploadTrigger>
+                    </FileUploadDropzone>
+                    <FileUploadList orientation="horizontal">
+                      {files.map((file, index) => (
+                        <FileUploadItem key={index} value={file} className="p-0">
+                          <FileUploadItemPreview className="size-20 [&>svg]:size-12">
+                            <FileUploadItemProgress variant="circular" size={40} />
+                          </FileUploadItemPreview>
+                          <FileUploadItemMetadata className="sr-only" />
+                          <FileUploadItemDelete asChild>
+                            <Button
+                              variant="secondary"
+                              size="icon"
+                              className="-top-1 -right-1 absolute size-5 rounded-full"
+                            >
+                              <X className="size-3" />
+                            </Button>
+                          </FileUploadItemDelete>
+                        </FileUploadItem>
+                      ))}
+                    </FileUploadList>
+                  </FileUpload>
                 </FormControl>
                 <FormDescription>Upload an image for your menu item (required).</FormDescription>
                 <FormMessage />

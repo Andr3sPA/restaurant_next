@@ -8,6 +8,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { Suspense } from "react";
 import { Loader } from "lucide-react";
 import { Navbar1 } from "@/components/navbar1";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 export const metadata: Metadata = {
   title: "Create T3 App",
@@ -28,11 +29,13 @@ export default function RootLayout({
       <body className="min-h-dvh">
         <Navbar1 />
         <TRPCReactProvider>
-          <Suspense
-            fallback=<Loader className="absolute top-1/2 left-1/2 -translate-1/2 scale-150 animate-spin" />
-          >
-            {children}
-          </Suspense>
+          <NuqsAdapter>
+            <Suspense
+              fallback=<Loader className="absolute top-1/2 left-1/2 -translate-1/2 scale-150 animate-spin" />
+            >
+              {children}
+            </Suspense>
+          </NuqsAdapter>
         </TRPCReactProvider>
         <Toaster />
       </body>

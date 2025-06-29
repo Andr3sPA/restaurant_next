@@ -16,4 +16,6 @@ const MotionDiv = React.forwardRef<HTMLHeadingElement, HTMLMotionProps<"div">>(
   ),
 );
 
+MotionDiv.displayName = "MotionDiv";
+
 export { MotionDiv };

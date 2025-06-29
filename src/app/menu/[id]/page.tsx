@@ -18,7 +18,7 @@ export default async function MenuItemPage({
           prefix={item.currency}
           price={item.price}
           inStock={item.available}
-          imageUrl={item.image !== null ? item.image : undefined}
+          imageUrl={item.image ?? undefined}
         />
       ) : (
         <div>Item not found</div>

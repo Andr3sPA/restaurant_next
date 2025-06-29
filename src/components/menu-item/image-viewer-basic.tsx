@@ -13,6 +13,7 @@ import {
 } from "@radix-ui/react-dialog";
 import { MinusCircle, PlusCircle, X } from "lucide-react";
 import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
+import Image from "next/image";
 
 const DEFAULT_PLACEHOLDER_URL =
   "https://raw.githubusercontent.com/stackzero-labs/ui/refs/heads/main/public/placeholders/headphone-2.jpg";
@@ -48,11 +49,11 @@ const ImageViewer_Basic = ({
     <Dialog>
       <DialogTrigger asChild>
         <div className={cn("cursor-pointer", className)}>
-          {/* You can swap this with your preferred image optization technique, like using  next/image */}
-          <img
-            src={thumbnailUrl || imageUrl}
+          <Image
+            src={thumbnailUrl ?? imageUrl}
             alt={`${imageTitle ?? "Image"} - Preview`}
-            width="100%"
+            width={300}
+            height={300}
             className={cn(
               "h-auto w-full rounded-lg object-contain transition-opacity hover:opacity-90",
               classNameThumbnailViewer
@@ -64,9 +65,9 @@ const ImageViewer_Basic = ({
       <DialogPortal>
         <DialogOverlay className="fixed inset-0 z-50 bg-black/80" />
         <DialogContent className="bg-background fixed inset-0 z-50 flex flex-col items-center justify-center p-0">
-          <DialogTitle className="sr-only">{imageTitle || "Image"}</DialogTitle>
+          <DialogTitle className="sr-only">{imageTitle ?? "Image"}</DialogTitle>
           <DialogDescription className="sr-only">
-            {imageTitle || "Image"}
+            {imageTitle ?? "Image"}
           </DialogDescription>
           <div className="relative flex h-screen w-screen items-center justify-center">
             <TransformWrapper
@@ -77,10 +78,11 @@ const ImageViewer_Basic = ({
               {({ zoomIn, zoomOut }) => (
                 <>
                   <TransformComponent>
-                    {/* You can swap this with your preferred image optization technique, like using  next/image */}
-                    <img
+                    <Image
                       src={imageUrl}
                       alt={`${imageTitle ?? "Image"} - Full`}
+                      width={1200}
+                      height={800}
                       className={cn(
                         "max-h-[90vh] max-w-[90vw] object-contain",
                         classNameImageViewer

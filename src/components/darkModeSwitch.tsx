@@ -2,7 +2,7 @@
 
 import { MoonStarIcon, SunIcon } from "lucide-react";
 import { Switch } from "./ui/switch";
-import { useEffect, useRef, useState, type RefObject } from "react";
+import { useEffect, useRef, useState, useCallback, type RefObject } from "react";
 import { useAnimate } from "motion/react";
 
 export function DarkModeSwitch() {
@@ -11,7 +11,7 @@ export function DarkModeSwitch() {
   const moonRef: RefObject<SVGSVGElement | null> = useRef(null);
   const [scope, animate] = useAnimate();
 
-  const handleOnCheckedChange = (c: boolean) => {
+  const handleOnCheckedChange = useCallback((c: boolean) => {
     let next, prev;
     if (c) {
       next = moonRef.current;
@@ -29,11 +29,11 @@ export function DarkModeSwitch() {
 
     setEnabled(c);
     localStorage.setItem("darkMode", c ? "1" : "0");
-  };
+  }, [animate]);
 
   useEffect(() => {
     handleOnCheckedChange(localStorage.getItem("darkMode") == "1");
-  }, []);
+  }, [handleOnCheckedChange]);
 
   return (
     <div ref={scope} className="flex items-center gap-2">
