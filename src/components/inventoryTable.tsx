@@ -136,6 +136,19 @@ export function MenuItemsTable() {
         enableHiding: false,
       },
       {
+        id: "id",
+        accessorKey: "id",
+        header: ({ column }: { column: Column<MenuItem, unknown> }) => (
+          <DataTableColumnHeader column={column} title="ID" />
+        ),
+        cell: ({ cell }) => (
+          <div className="text-sm text-muted-foreground">
+            {cell.getValue<MenuItem["id"]>()}
+          </div>
+        ),
+        enableColumnFilter: true,
+      },
+      {
         id: "image",
         accessorKey: "image",
         header: "Image",
