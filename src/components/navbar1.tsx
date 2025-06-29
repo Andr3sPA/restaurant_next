@@ -25,6 +25,8 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { Switch } from "./ui/switch";
+import { DarkModeSwitch } from "./darkModeSwitch";
 
 interface MenuItem {
   title: string;
@@ -125,7 +127,7 @@ const Navbar1 = async ({
   ],
 }: Navbar1Props) => {
   const session = await getAuth();
-  
+
   return (
     <section className="py-4">
       <div className="container">
@@ -134,7 +136,13 @@ const Navbar1 = async ({
           <div className="flex items-center gap-6 pl-4">
             {/* Logo */}
             <a href={logo.url} className="flex items-center gap-2">
-              <Image src={logo.src} className="max-h-8" alt={logo.alt} width={32} height={32} />
+              <Image
+                src={logo.src}
+                className="max-h-8"
+                alt={logo.alt}
+                width={32}
+                height={32}
+              />
               <span className="text-lg font-semibold tracking-tighter">
                 {logo.title}
               </span>
@@ -147,19 +155,16 @@ const Navbar1 = async ({
               </NavigationMenu>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
+            <DarkModeSwitch />
             <Button asChild variant="outline" size="sm">
-              <Link
-                href={session ? "/api/auth/signout" : "/user/signin"}
-              >
+              <Link href={session ? "/api/auth/signout" : "/user/signin"}>
                 {session ? "Sign out" : "Sign in"}
               </Link>
             </Button>
             {!session && (
               <Button asChild size="sm">
-                <Link href="/user/signup">
-                  Sign up
-                </Link>
+                <Link href="/user/signup">Sign up</Link>
               </Button>
             )}
           </div>
@@ -167,10 +172,16 @@ const Navbar1 = async ({
 
         {/* Mobile Menu */}
         <div className="block lg:hidden">
-          <div className="flex items-center justify-between pl-4 pr-4">
+          <div className="flex items-center justify-between pr-4 pl-4">
             {/* Logo */}
             <a href={logo.url} className="flex items-center gap-2">
-              <Image src={logo.src} className="max-h-8" alt={logo.alt} width={32} height={32} />
+              <Image
+                src={logo.src}
+                className="max-h-8"
+                alt={logo.alt}
+                width={32}
+                height={32}
+              />
             </a>
             <Sheet>
               <SheetTrigger asChild>
@@ -182,7 +193,13 @@ const Navbar1 = async ({
                 <SheetHeader>
                   <SheetTitle>
                     <a href={logo.url} className="flex items-center gap-2">
-                      <Image src={logo.src} className="max-h-8" alt={logo.alt} width={32} height={32} />
+                      <Image
+                        src={logo.src}
+                        className="max-h-8"
+                        alt={logo.alt}
+                        width={32}
+                        height={32}
+                      />
                     </a>
                   </SheetTitle>
                 </SheetHeader>
@@ -197,7 +214,9 @@ const Navbar1 = async ({
 
                   <div className="flex flex-col gap-3">
                     <Button asChild variant="outline">
-                      <Link href={session ? "/api/auth/signout" : "/user/signin"}>
+                      <Link
+                        href={session ? "/api/auth/signout" : "/user/signin"}
+                      >
                         {session ? "Sign out" : "Sign in"}
                       </Link>
                     </Button>
@@ -237,7 +256,7 @@ const renderMenuItem = (item: MenuItem) => {
     <NavigationMenuItem key={item.title}>
       <NavigationMenuLink
         href={item.url}
-        className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-muted hover:text-accent-foreground"
+        className="group bg-background hover:bg-muted hover:text-accent-foreground inline-flex h-10 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors"
       >
         {item.title}
       </NavigationMenuLink>
@@ -271,14 +290,14 @@ const renderMobileMenuItem = (item: MenuItem) => {
 const SubMenuLink = ({ item }: { item: MenuItem }) => {
   return (
     <a
-      className="flex flex-row gap-4 rounded-md p-3 leading-none no-underline transition-colors outline-none select-none hover:bg-muted hover:text-accent-foreground"
+      className="hover:bg-muted hover:text-accent-foreground flex flex-row gap-4 rounded-md p-3 leading-none no-underline transition-colors outline-none select-none"
       href={item.url}
     >
       <div className="text-foreground">{item.icon}</div>
       <div>
         <div className="text-sm font-semibold">{item.title}</div>
         {item.description && (
-          <p className="text-sm leading-snug text-muted-foreground">
+          <p className="text-muted-foreground text-sm leading-snug">
             {item.description}
           </p>
         )}
