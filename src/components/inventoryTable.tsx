@@ -29,6 +29,47 @@ import {
 import { parseAsArrayOf, parseAsString, useQueryState } from "nuqs";
 import * as React from "react";
 import Image from "next/image";
+
+// Componente separado para manejar el estado de la imagen
+function MenuItemImage({ imageUrl }: { imageUrl: string | null }) {
+  const [imageError, setImageError] = React.useState(false);
+  
+  // Función para optimizar URLs de Cloudinary
+  const optimizeCloudinaryUrl = (url: string) => {
+    if (url.includes('cloudinary.com')) {
+      // Si la URL ya tiene transformaciones, la usamos tal como está
+      if (url.includes('/c_')) return url;
+      
+      // Si no tiene transformaciones, agregamos algunas optimizaciones básicas
+      const parts = url.split('/upload/');
+      if (parts.length === 2) {
+        return `${parts[0]}/upload/c_fill,w_48,h_48,q_auto,f_auto/${parts[1]}`;
+      }
+    }
+    return url;
+  };
+  
+  return (
+    <div className="flex items-center justify-center w-12 h-12">
+      {imageUrl && !imageError ? (
+        <Image
+          src={optimizeCloudinaryUrl(imageUrl)}
+          alt="Menu item"
+          width={48}
+          height={48}
+          className="rounded-md object-cover"
+          onError={() => setImageError(true)}
+          priority={false}
+          unoptimized={false} // Permitir optimización de Next.js para Cloudinary
+        />
+      ) : (
+        <div className="w-12 h-12 bg-gray-200 rounded-md flex items-center justify-center">
+          <ImageIcon className="w-6 h-6 text-gray-400" />
+        </div>
+      )}
+    </div>
+  );
+}
  
 interface MenuItem {
   id: string;
@@ -99,23 +140,7 @@ export function MenuItemsTable() {
         header: "Image",
         cell: ({ cell }) => {
           const imageUrl = cell.getValue<MenuItem["image"]>();
-          return (
-            <div className="flex items-center justify-center w-12 h-12">
-              {imageUrl ? (
-                <Image
-                  src={imageUrl}
-                  alt="Menu item"
-                  width={48}
-                  height={48}
-                  className="rounded-md object-cover"
-                />
-              ) : (
-                <div className="w-12 h-12 bg-gray-200 rounded-md flex items-center justify-center">
-                  <ImageIcon className="w-6 h-6 text-gray-400" />
-                </div>
-              )}
-            </div>
-          );
+          return <MenuItemImage imageUrl={imageUrl} />;
         },
         enableSorting: false,
         enableColumnFilter: false,
