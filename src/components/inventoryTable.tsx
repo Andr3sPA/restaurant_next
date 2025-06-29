@@ -13,6 +13,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useDataTable } from "@/hooks/use-data-table";
 import { api } from "@/trpc/react";
  
@@ -168,13 +169,27 @@ export function MenuItemsTable() {
         ),
         cell: ({ cell }) => {
           const description = cell.getValue<MenuItem["description"]>();
+          
+          if (!description || description.trim() === "") {
+            return (
+              <div className="text-sm text-muted-foreground italic">
+                No description
+              </div>
+            );
+          }
+          
           return (
-            <div className="max-w-[200px] truncate text-sm text-muted-foreground">
-              {description ?? "No description"}
+            <div className="w-[250px]">
+              <ScrollArea className="h-[60px] w-full rounded-md border p-2">
+                <div className="text-sm leading-relaxed">
+                  {description}
+                </div>
+              </ScrollArea>
             </div>
           );
         },
         enableSorting: false,
+        size: 250, // Ancho fijo para la columna
       },
       {
         id: "available",
