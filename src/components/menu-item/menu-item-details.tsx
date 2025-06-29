@@ -54,9 +54,24 @@ function MenuItemDetails({
     const existingItems = localStorage.getItem("cartItems");
     if (existingItems) {
       try {
-        const parsedItems = JSON.parse(existingItems);
+        const parsedItems: unknown = JSON.parse(existingItems);
         if (Array.isArray(parsedItems)) {
-          setCartItems(parsedItems);
+          // Validar que cada item tenga la estructura correcta
+          const validItems = parsedItems.filter((item: unknown): item is {
+            description?: string;
+            imageUrl: string;
+            prefix?: string;
+            price?: number;
+            title?: string;
+          } => {
+            return (
+              typeof item === 'object' &&
+              item !== null &&
+              'imageUrl' in item &&
+              typeof (item as { imageUrl: unknown }).imageUrl === 'string'
+            );
+          });
+          setCartItems(validItems);
         }
       } catch (error) {
         console.error("Error parsing cart items from localStorage:", error);

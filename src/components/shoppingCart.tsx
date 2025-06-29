@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react'
 import { XMarkIcon, ShoppingCartIcon } from '@heroicons/react/24/outline'
+import Image from 'next/image'
 
 interface CartItem {
   description?: string;
@@ -21,9 +22,9 @@ export default function ShoppingCart() {
       const existingItems = localStorage.getItem("cartItems");
       if (existingItems) {
         try {
-          const parsedItems = JSON.parse(existingItems);
+          const parsedItems = JSON.parse(existingItems) as unknown;
           if (Array.isArray(parsedItems)) {
-            setCartItems(parsedItems);
+            setCartItems(parsedItems as CartItem[]);
           }
         } catch (error) {
           console.error("Error parsing cart items from localStorage:", error);
@@ -60,7 +61,7 @@ export default function ShoppingCart() {
   };
 
   const getTotalPrice = () => {
-    return cartItems.reduce((total, item) => total + (item.price || 0), 0).toFixed(2);
+    return cartItems.reduce((total, item) => total + (item.price ?? 0), 0).toFixed(2);
   };
   return (
     <div>
@@ -119,9 +120,11 @@ export default function ShoppingCart() {
                             {cartItems.map((item, index) => (
                               <li key={index} className="flex py-6">
                                 <div className="size-24 shrink-0 overflow-hidden rounded-md border border-gray-200">
-                                  <img 
-                                    alt={item.title || "Product image"} 
+                                  <Image 
+                                    alt={item.title ?? "Product image"} 
                                     src={item.imageUrl} 
+                                    width={96}
+                                    height={96}
                                     className="size-full object-cover"
                                     onError={(e) => {
                                       const target = e.target as HTMLImageElement;
@@ -134,14 +137,14 @@ export default function ShoppingCart() {
                                   <div>
                                     <div className="flex justify-between text-base font-medium text-gray-900">
                                       <h3>
-                                        <span>{item.title || "Untitled Item"}</span>
+                                        <span>{item.title ?? "Untitled Item"}</span>
                                       </h3>
                                       <p className="ml-4">
-                                        {item.prefix || "$"}{item.price?.toFixed(2) || "0.00"}
+                                        {item.prefix ?? "$"}{item.price?.toFixed(2) ?? "0.00"}
                                       </p>
                                     </div>
                                     <p className="mt-1 text-sm text-gray-500 line-clamp-2">
-                                      {item.description || "No description available"}
+                                      {item.description ?? "No description available"}
                                     </p>
                                   </div>
                                   <div className="flex flex-1 items-end justify-between text-sm">
