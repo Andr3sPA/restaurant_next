@@ -179,13 +179,11 @@ export function MenuItemsTable() {
           }
           
           return (
-            <div className="w-[300px]">
               <ScrollArea className="h-[80px] w-[280px] rounded-md border p-3">
                 <div className="text-sm leading-relaxed pr-2">
                   {description}
                 </div>
               </ScrollArea>
-            </div>
           );
         },
         enableSorting: false,
