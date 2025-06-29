@@ -179,9 +179,9 @@ export function MenuItemsTable() {
           }
           
           return (
-            <div className="w-[250px]">
-              <ScrollArea className="h-[60px] w-full rounded-md border p-2">
-                <div className="text-sm leading-relaxed">
+            <div className="w-[300px]">
+              <ScrollArea className="h-[80px] w-[280px] rounded-md border p-3">
+                <div className="text-sm leading-relaxed pr-2">
                   {description}
                 </div>
               </ScrollArea>
@@ -189,7 +189,7 @@ export function MenuItemsTable() {
           );
         },
         enableSorting: false,
-        size: 250, // Ancho fijo para la columna
+        size: 300, // Ancho fijo para la columna
       },
       {
         id: "available",
