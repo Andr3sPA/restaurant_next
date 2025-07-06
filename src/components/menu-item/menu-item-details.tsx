@@ -8,10 +8,12 @@ import { Card, CardContent } from "../ui/card";
 import { MotionDiv } from "../motionDiv";
 
 import { useEffect, useState } from "react";
+import type { CartItem } from "../shoppingCart";
 const DEFAULT_IMAGE_URL =
   "https://raw.githubusercontent.com/stackzero-labs/ui/refs/heads/main/public/placeholders/headphone-4.jpg";
 
 interface MenuItemDetailsProps {
+  id: string;
   imageUrl?: string;
   discount?: string | null;
   title?: string;
@@ -27,6 +29,7 @@ interface MenuItemDetailsProps {
 }
 
 function MenuItemDetails({
+  id,
   description,
   discount,
   hasShipping,
@@ -40,13 +43,7 @@ function MenuItemDetails({
   stockCount,
   title,
 }: MenuItemDetailsProps) {
-  const [cartItems, setCartItems] = useState<Array<{
-    description?: string;
-    imageUrl: string;
-    prefix?: string;
-    price?: number;
-    title?: string;
-  }>>([]);
+  const [cartItems, setCartItems] = useState<Array<CartItem>>([]);
 
   useEffect(() => {
     const existingItems = localStorage.getItem("cartItems");
@@ -55,20 +52,16 @@ function MenuItemDetails({
         const parsedItems: unknown = JSON.parse(existingItems);
         if (Array.isArray(parsedItems)) {
           // Validar que cada item tenga la estructura correcta
-          const validItems = parsedItems.filter((item: unknown): item is {
-            description?: string;
-            imageUrl: string;
-            prefix?: string;
-            price?: number;
-            title?: string;
-          } => {
-            return (
-              typeof item === 'object' &&
-              item !== null &&
-              'imageUrl' in item &&
-              typeof (item as { imageUrl: unknown }).imageUrl === 'string'
-            );
-          });
+          const validItems = parsedItems.filter(
+            (item: unknown): item is CartItem => {
+              return (
+                typeof item === "object" &&
+                item !== null &&
+                "imageUrl" in item &&
+                typeof (item as { imageUrl: unknown }).imageUrl === "string"
+              );
+            },
+          );
           setCartItems(validItems);
         }
       } catch (error) {
@@ -85,16 +78,17 @@ function MenuItemDetails({
 
   const handleAddToCart = () => {
     const itemToSave = {
+      id,
       description,
       imageUrl,
       prefix,
       price,
       title,
     };
-    
-    setCartItems(prevItems => [...prevItems, itemToSave]);
-    
-    window.dispatchEvent(new Event('cartUpdated'));
+
+    setCartItems((prevItems) => [...prevItems, itemToSave]);
+
+    window.dispatchEvent(new Event("cartUpdated"));
   };
   return (
     <MotionDiv>
@@ -168,11 +162,7 @@ function MenuItemDetails({
               >
                 Add to cart
               </Button>
-              <Button
-                size="lg"
-                className="w-full md:w-fit"
-                onClick={handleAddToCart}
-              >
+              <Button size="lg" className="w-full md:w-fit">
                 Order now
               </Button>
             </div>
@@ -185,4 +175,3 @@ function MenuItemDetails({
 
 export { MenuItemDetails };
 export type { MenuItemDetailsProps };
-

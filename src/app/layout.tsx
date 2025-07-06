@@ -25,7 +25,19 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${geist.variable}`}>
+    <html suppressHydrationWarning lang="en" className={`${geist.variable}`}>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(() => {
+              try {
+                const dark = localStorage.getItem('darkMode') === '1';
+                document.documentElement.classList.toggle('dark', dark);
+              } catch (_) {}
+            })()`,
+          }}
+        />
+      </head>
       <body className="min-h-dvh">
         <Navbar1 />
         <TRPCReactProvider>

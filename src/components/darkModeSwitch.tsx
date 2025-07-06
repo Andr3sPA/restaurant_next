@@ -2,7 +2,13 @@
 
 import { MoonStarIcon, SunIcon } from "lucide-react";
 import { Switch } from "./ui/switch";
-import { useEffect, useRef, useState, useCallback, type RefObject } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+  type RefObject,
+} from "react";
 import { useAnimate } from "motion/react";
 
 export function DarkModeSwitch() {
@@ -11,28 +17,29 @@ export function DarkModeSwitch() {
   const moonRef: RefObject<SVGSVGElement | null> = useRef(null);
   const [scope, animate] = useAnimate();
 
-  const handleOnCheckedChange = useCallback((c: boolean) => {
-    let next, prev;
-    if (c) {
-      next = moonRef.current;
-      prev = sunRef.current;
+  const handleOnCheckedChange = useCallback(
+    (c: boolean) => {
+      let next, prev;
+      if (c) {
+        next = moonRef.current;
+        prev = sunRef.current;
+      } else {
+        prev = moonRef.current;
+        next = sunRef.current;
+      }
 
-      document.body.classList.add("dark");
-    } else {
-      prev = moonRef.current;
-      next = sunRef.current;
-      document.body.classList.remove("dark");
-    }
+      if (prev) animate(prev, { opacity: 0.2, scale: 0.8 });
+      if (next) animate(next, { opacity: 1, scale: 1 });
 
-    if (prev) animate(prev, { opacity: 0.2, scale: 0.8 });
-    if (next) animate(next, { opacity: 1, scale: 1 });
-
-    setEnabled(c);
-    localStorage.setItem("darkMode", c ? "1" : "0");
-  }, [animate]);
+      setEnabled(c);
+      document.documentElement.classList.toggle("dark", c);
+      localStorage.setItem("darkMode", c ? "1" : "0");
+    },
+    [animate],
+  );
 
   useEffect(() => {
-    handleOnCheckedChange(localStorage.getItem("darkMode") == "1");
+    handleOnCheckedChange(localStorage.getItem("darkMode") === "1");
   }, [handleOnCheckedChange]);
 
   return (

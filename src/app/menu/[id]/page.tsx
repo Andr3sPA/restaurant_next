@@ -13,6 +13,7 @@ export default async function MenuItemPage({
     <div className="my-16 flex items-center justify-center">
       {item ? (
         <MenuItemDetails
+          id={item.id}
           title={item.name}
           description={item.description ?? "No description"}
           prefix={item.currency}
