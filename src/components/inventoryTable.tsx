@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
+
 import { useDataTable } from "@/hooks/use-data-table";
 import { api } from "@/trpc/react";
  
@@ -192,15 +193,17 @@ export function MenuItemsTable() {
           }
           
           return (
-              <ScrollArea className="h-[80px] w-[280px] rounded-md border p-3">
-                <div className="text-sm leading-relaxed pr-2">
+            <div className="relative whitespace-normal" style={{ minWidth: '200px', maxWidth: '200px' }}>
+              <ScrollArea className="h-[70px] w-[200px] rounded-md border">
+                <div className="p-2 text-sm leading-relaxed whitespace-normal break-words">
                   {description}
                 </div>
               </ScrollArea>
+            </div>
           );
         },
         enableSorting: false,
-        size: 300, // Ancho fijo para la columna
+        size: 220, // Ancho ajustado para la columna
       },
       {
         id: "available",

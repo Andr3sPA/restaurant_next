@@ -96,7 +96,7 @@ export const menuRouter = createTRPCRouter({
         });
       }
     }),
-  getMenuItems: publicProcedure.query(async ({ ctx }) => {
+  getMenuItems: adminProcedure.query(async ({ ctx }) => {
     return await ctx.db.menuItem.findMany({
       orderBy: {
         createdAt: "desc",

@@ -1,7 +1,8 @@
 import { z } from "zod";
 import bcrypt from "bcrypt";
-import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
+import { adminProcedure, createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
+import { Role } from "@prisma/client";
 
 export const userRouter = createTRPCRouter({
   authenticateUser: publicProcedure
@@ -38,6 +39,46 @@ export const userRouter = createTRPCRouter({
         name: userFromDb.name,
         role: userFromDb.role, // Assuming you have a role field in your user model
       };
+    }),
+  getUsers : adminProcedure
+    .query(async ({ ctx }) => {
+      return ctx.db.user.findMany({
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          role: true,
+        },
+        orderBy: {
+          name: 'desc',
+        },
+      });
+    }),
+  changeUserRole: adminProcedure
+    .input(
+      z.object({
+        userId: z.string(),
+        newRole: z.nativeEnum(Role), // Assuming Role is an enum in your Prisma schema
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      return ctx.db.user.update({
+        where: { id: input.userId },
+        data: { role: input.newRole },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          role: true,
+        },
+      });
+    }),
+    deleteUser: adminProcedure
+    .input(z.object({ userId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      return ctx.db.user.delete({
+        where: { id: input.userId },
+      });
     }),
   registerUser: publicProcedure
     .input(

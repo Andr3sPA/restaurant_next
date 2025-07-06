@@ -3,6 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import ShoppinCart from "@/components/shoppingCart";
 import { auth as getAuth } from "@/server/auth";
+import { Role } from "@prisma/client";
 import {
   Accordion,
   AccordionContent,
@@ -52,13 +53,53 @@ const Navbar1 = async ({
     alt: "logo",
     title: "Shadcnblocks.com",
   },
-  menu = [
-    { title: "Home", url: "/" },
-    { title: "Inventario", url: "/menu/inventory" },
-    { title: "Añadir plato", url: "/menu/register" },
-  ],
+  menu,
 }: Navbar1Props) => {
   const session = await getAuth();
+  
+  // Definir menús según el rol del usuario
+  const clientMenu = [
+    { title: "Home", url: "/" },
+    { title: "Menu", url: "/menu" },
+    { title: "Historial", url: "/reservations" },
+  ];
+  
+  const employeeMenu = [
+    { title: "Home", url: "/" },
+    { title: "Menu", url: "/menu" },
+    { title: "Pedidos", url: "/orders" },
+    { title: "Historial", url: "/reservations" },
+    { title: "Inventario", url: "/menu/inventory" },
+    { title: "Añadir plato", url: "/menu/register" },
+  ];
+  
+  const adminMenu = [
+    { title: "Home", url: "/" },
+    { title: "Menu", url: "/menu" },
+    { title: "Pedidos", url: "/orders" },
+    { title: "Historial", url: "/reservations" },
+    { title: "Usuarios", url: "/users" },
+    { title: "Inventario", url: "/menu/inventory" },
+    { title: "Añadir plato", url: "/menu/register" },
+  ];
+  
+  // Seleccionar el menú apropiado según el rol
+  const getMenuByRole = () => {
+    if (!session?.user?.role) return adminMenu; // Default para usuarios sin sesión
+    
+    switch (session.user.role) {
+      case Role.CLIENT:
+        return clientMenu;
+      case Role.EMPLOYEE:
+        return employeeMenu;
+      case Role.ADMIN:
+        return adminMenu;
+      default:
+        return adminMenu;
+    }
+  };
+  
+  const selectedMenu = menu ?? getMenuByRole();
 
   return (
     <section className="py-4">
@@ -82,7 +123,7 @@ const Navbar1 = async ({
             <div className="flex items-center">
               <NavigationMenu>
                 <NavigationMenuList>
-                  {menu.map((item) => renderMenuItem(item))}
+                  {selectedMenu.map((item) => renderMenuItem(item))}
                 </NavigationMenuList>
               </NavigationMenu>
             </div>
@@ -143,7 +184,7 @@ const Navbar1 = async ({
                     collapsible
                     className="flex w-full flex-col gap-4"
                   >
-                    {menu.map((item) => renderMobileMenuItem(item))}
+                    {selectedMenu.map((item) => renderMobileMenuItem(item))}
                   </Accordion>
 
                   <div className="flex flex-col gap-3">
