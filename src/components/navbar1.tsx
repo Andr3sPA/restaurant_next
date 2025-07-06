@@ -85,7 +85,13 @@ const Navbar1 = async ({
   
   // Seleccionar el menú apropiado según el rol
   const getMenuByRole = () => {
-    if (!session?.user?.role) return adminMenu; // Default para usuarios sin sesión
+    if (!session?.user?.role) {
+      // Para usuarios sin sesión: mostrar menú cliente sin historial
+      return [
+        { title: "Home", url: "/" },
+        { title: "Menu", url: "/menu" },
+      ];
+    }
     
     switch (session.user.role) {
       case Role.CLIENT:
