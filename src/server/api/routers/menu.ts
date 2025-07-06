@@ -1,7 +1,7 @@
 import { z } from "zod";
 import {
   createTRPCRouter,
-  protectedProcedure,
+  adminProcedure,
   publicProcedure,
 } from "@/server/api/trpc";
 import { v2 as cloudinary } from "cloudinary";
@@ -14,7 +14,7 @@ const ACCEPTED_IMAGE_MIME_TYPES = [
   "image/webp",
 ];
 export const menuRouter = createTRPCRouter({
-  registerMenuItem: protectedProcedure
+  registerMenuItem: adminProcedure
     .input(
       z.object({
         name: z.string().min(1, { message: "Name is required" }),

@@ -24,7 +24,6 @@ interface MenuItemDetailsProps {
   shippingText?: string;
   price?: number;
   prefix?: string;
-  onBuyNow?: () => void;
 }
 
 function MenuItemDetails({
@@ -33,7 +32,6 @@ function MenuItemDetails({
   hasShipping,
   imageUrl = DEFAULT_IMAGE_URL,
   inStock,
-  onBuyNow: onOrderNow,
   prefix,
   price,
   rating,
@@ -173,7 +171,7 @@ function MenuItemDetails({
               <Button
                 size="lg"
                 className="w-full md:w-fit"
-                onClick={onOrderNow}
+                onClick={handleAddToCart}
               >
                 Order now
               </Button>
@@ -187,3 +185,4 @@ function MenuItemDetails({
 
 export { MenuItemDetails };
 export type { MenuItemDetailsProps };
+

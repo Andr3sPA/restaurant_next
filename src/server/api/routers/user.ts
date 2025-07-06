@@ -36,6 +36,7 @@ export const userRouter = createTRPCRouter({
         id: userFromDb.id,
         email: userFromDb.email,
         name: userFromDb.name,
+        role: userFromDb.role, // Assuming you have a role field in your user model
       };
     }),
   registerUser: publicProcedure
