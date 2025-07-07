@@ -39,8 +39,8 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-dvh">
-        <Navbar1 />
         <TRPCReactProvider>
+          <Navbar1 />
           <NuqsAdapter>
             <Suspense
               fallback=<Loader className="absolute top-1/2 left-1/2 -translate-1/2 scale-150 animate-spin" />
