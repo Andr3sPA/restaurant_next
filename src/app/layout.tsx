@@ -9,6 +9,7 @@ import { Suspense } from "react";
 import { Loader } from "lucide-react";
 import { Navbar1 } from "@/components/navbar1";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
+import { CartProvider } from "@/contexts/CartContext";
 
 export const metadata: Metadata = {
   title: "Create T3 App",
@@ -40,14 +41,16 @@ export default function RootLayout({
       </head>
       <body className="min-h-dvh">
         <TRPCReactProvider>
-          <Navbar1 />
-          <NuqsAdapter>
-            <Suspense
-              fallback=<Loader className="absolute top-1/2 left-1/2 -translate-1/2 scale-150 animate-spin" />
-            >
-              {children}
-            </Suspense>
-          </NuqsAdapter>
+          <CartProvider>
+            <Navbar1 />
+            <NuqsAdapter>
+              <Suspense
+                fallback=<Loader className="absolute top-1/2 left-1/2 -translate-1/2 scale-150 animate-spin" />
+              >
+                {children}
+              </Suspense>
+            </NuqsAdapter>
+          </CartProvider>
         </TRPCReactProvider>
         <Toaster />
       </body>

@@ -6,9 +6,8 @@ import StarRatingFractions from "@/components/menu-item/star-rating-fractions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "../ui/card";
 import { MotionDiv } from "../motionDiv";
-
-import { useEffect, useState } from "react";
-import type { CartItem } from "../shoppingCart";
+import { useCart } from "@/contexts/CartContext";
+import { useRouter } from "next/navigation";
 const DEFAULT_IMAGE_URL =
   "https://raw.githubusercontent.com/stackzero-labs/ui/refs/heads/main/public/placeholders/headphone-4.jpg";
 
@@ -43,52 +42,44 @@ function MenuItemDetails({
   stockCount,
   title,
 }: MenuItemDetailsProps) {
-  const [cartItems, setCartItems] = useState<Array<CartItem>>([]);
-
-  useEffect(() => {
-    const existingItems = localStorage.getItem("cartItems");
-    if (existingItems) {
-      try {
-        const parsedItems: unknown = JSON.parse(existingItems);
-        if (Array.isArray(parsedItems)) {
-          // Validar que cada item tenga la estructura correcta
-          const validItems = parsedItems.filter(
-            (item: unknown): item is CartItem => {
-              return (
-                typeof item === "object" &&
-                item !== null &&
-                "imageUrl" in item &&
-                typeof (item as { imageUrl: unknown }).imageUrl === "string"
-              );
-            },
-          );
-          setCartItems(validItems);
-        }
-      } catch (error) {
-        console.error("Error parsing cart items from localStorage:", error);
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    if (cartItems.length > 0) {
-      localStorage.setItem("cartItems", JSON.stringify(cartItems));
-    }
-  }, [cartItems]);
+  const { addItem } = useCart();
+  const router = useRouter();
 
   const handleAddToCart = () => {
-    const itemToSave = {
+    if (!price || !prefix || !title) {
+      console.error("Missing required item data");
+      return;
+    }
+
+    const itemToAdd = {
       id,
-      description,
-      imageUrl,
+      title,
+      description: description ?? "No description",
+      imageUrl: imageUrl ?? DEFAULT_IMAGE_URL,
       prefix,
       price,
-      title,
     };
 
-    setCartItems((prevItems) => [...prevItems, itemToSave]);
+    addItem(itemToAdd);
+  };
 
-    window.dispatchEvent(new Event("cartUpdated"));
+  const handleOrderNow = () => {
+    if (!price || !prefix || !title) {
+      console.error("Missing required item data");
+      return;
+    }
+
+    const itemToAdd = {
+      id,
+      title,
+      description: description ?? "No description",
+      imageUrl: imageUrl ?? DEFAULT_IMAGE_URL,
+      prefix,
+      price,
+    };
+
+    addItem(itemToAdd);
+    router.push("/checkout");
   };
   return (
     <MotionDiv>
@@ -159,10 +150,16 @@ function MenuItemDetails({
                 size="lg"
                 className="w-full md:w-fit"
                 onClick={handleAddToCart}
+                disabled={!inStock}
               >
                 Add to cart
               </Button>
-              <Button size="lg" className="w-full md:w-fit">
+              <Button 
+                size="lg" 
+                className="w-full md:w-fit"
+                onClick={handleOrderNow}
+                disabled={!inStock}
+              >
                 Order now
               </Button>
             </div>

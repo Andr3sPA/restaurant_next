@@ -12,7 +12,6 @@ import {
   Package,
   Wallet2,
 } from "lucide-react";
-import type { CartItem } from "./shoppingCart";
 import { useEffect, useState } from "react";
 import { Card, CardContent } from "./ui/card";
 import { api } from "@/trpc/react";
@@ -28,6 +27,7 @@ import {
   FormMessage,
 } from "./ui/form";
 import { useRouter } from "next/navigation";
+import { useCart } from "@/contexts/CartContext";
 
 const schema = z.object({
   address: z.coerce.string().min(6),
@@ -36,11 +36,10 @@ const schema = z.object({
 });
 
 export function Checkout() {
-  const [{ cartItems, subtotal, total }, setInfo] = useState({
-    cartItems: [] as CartItem[],
-    subtotal: 0,
-    total: 0,
-  });
+  const { items: cartItems, getTotalPrice, clearCart } = useCart();
+  const [subtotal, setSubtotal] = useState(0);
+  const [total, setTotal] = useState(0);
+  
   const form = useForm<z.infer<typeof schema>>({
     defaultValues: {
       address: "",
@@ -48,19 +47,20 @@ export function Checkout() {
     },
     resolver: zodResolver(schema),
   });
-  const router = useRouter();
-
-  const { mutate, isPending, isSuccess } = api.order.createNew.useMutation();
 
   useEffect(() => {
-    const cartItems = JSON.parse(
-      localStorage.getItem("cartItems") ?? "[]",
-    ) as CartItem[];
-    const subtotal = cartItems.reduce((subT, b) => subT + (b.price ?? 0), 0);
-    const total = subtotal;
+    const calculatedSubtotal = getTotalPrice();
+    const calculatedTotal = calculatedSubtotal + (calculatedSubtotal * 0.1); // Adding 10% tax
+    setSubtotal(calculatedSubtotal);
+    setTotal(calculatedTotal);
+  }, [cartItems, getTotalPrice]);
+  const router = useRouter();
 
-    setInfo({ cartItems, subtotal, total });
-  }, []);
+  const { mutate, isPending, isSuccess } = api.order.createNew.useMutation({
+    onSuccess: () => {
+      clearCart(); // Limpiar el carrito después de crear la orden exitosamente
+    }
+  });
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -200,7 +200,7 @@ export function Checkout() {
                   <div key={index} className="flex items-center gap-2">
                     <Package className="h-5 w-5 text-gray-500" />
                     <span>{item.title}</span>
-                    <span className="ml-auto">${item.price?.toFixed(2)}</span>
+                    <span className="ml-auto">{item.prefix}{item.price.toFixed(2)}</span>
                   </div>
                 ))}
               </div>

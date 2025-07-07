@@ -4,6 +4,7 @@ import Image from "next/image";
 import ShoppinCart from "@/components/shoppingCart";
 import { auth as getAuth } from "@/server/auth";
 import { Role } from "@prisma/client";
+import { HydrateClient } from "@/trpc/server";
 import {
   Accordion,
   AccordionContent,
@@ -108,6 +109,7 @@ const Navbar1 = async ({
   const selectedMenu = menu ?? getMenuByRole();
 
   return (
+    <HydrateClient>
     <section className="py-4">
       <div className="container">
         {/* Desktop Menu */}
@@ -214,6 +216,7 @@ const Navbar1 = async ({
         </div>
       </div>
     </section>
+    </HydrateClient>
   );
 };
 

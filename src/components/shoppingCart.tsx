@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogBackdrop,
@@ -10,69 +10,12 @@ import {
 import { XMarkIcon, ShoppingCartIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-
-export interface CartItem {
-  id: string;
-  description?: string;
-  imageUrl: string;
-  prefix?: string;
-  price?: number;
-  title?: string;
-}
+import { useCart } from "@/contexts/CartContext";
 
 export default function ShoppingCart() {
   const [open, setOpen] = useState(false);
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const router = useRouter();
-
-  useEffect(() => {
-    const loadCartItems = () => {
-      const existingItems = localStorage.getItem("cartItems");
-      if (existingItems) {
-        try {
-          const parsedItems = JSON.parse(existingItems) as unknown;
-          if (Array.isArray(parsedItems)) {
-            setCartItems(parsedItems as CartItem[]);
-          }
-        } catch (error) {
-          console.error("Error parsing cart items from localStorage:", error);
-        }
-      }
-    };
-
-    // Cargar items al montar el componente
-    loadCartItems();
-
-    // Escuchar cambios en localStorage
-    const handleStorageChange = () => {
-      loadCartItems();
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-
-    // También escuchar un evento customizado para cambios en la misma pestaña
-    window.addEventListener("cartUpdated", handleStorageChange);
-
-    return () => {
-      window.removeEventListener("storage", handleStorageChange);
-      window.removeEventListener("cartUpdated", handleStorageChange);
-    };
-  }, []);
-
-  const removeItem = (index: number) => {
-    const updatedItems = cartItems.filter((_, i) => i !== index);
-    setCartItems(updatedItems);
-    localStorage.setItem("cartItems", JSON.stringify(updatedItems));
-
-    // Disparar evento personalizado para actualizar otros componentes
-    window.dispatchEvent(new Event("cartUpdated"));
-  };
-
-  const getTotalPrice = () => {
-    return cartItems
-      .reduce((total, item) => total + (item.price ?? 0), 0)
-      .toFixed(2);
-  };
+  const { items: cartItems, removeItem, getTotalPrice, getItemCount } = useCart();
   return (
     <div>
       <button
@@ -81,9 +24,9 @@ export default function ShoppingCart() {
       >
         <ShoppingCartIcon className="h-5 w-5" />
         <span>Cart</span>
-        {cartItems.length > 0 && (
+        {getItemCount() > 0 && (
           <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white">
-            {cartItems.length}
+            {getItemCount()}
           </span>
         )}
       </button>
@@ -121,7 +64,7 @@ export default function ShoppingCart() {
 
                     <div className="mt-8">
                       <div className="flow-root">
-                        {cartItems.length === 0 ? (
+                        {getItemCount() === 0 ? (
                           <div className="py-12 text-center">
                             <ShoppingCartIcon className="mx-auto h-12 w-12 text-gray-400" />
                             <h3 className="mt-2 text-sm font-medium text-gray-900">
@@ -159,17 +102,16 @@ export default function ShoppingCart() {
                                     <div className="flex justify-between text-base font-medium text-gray-900">
                                       <h3>
                                         <span>
-                                          {item.title ?? "Untitled Item"}
+                                          {item.title}
                                         </span>
                                       </h3>
                                       <p className="ml-4">
-                                        {item.prefix ?? "$"}
-                                        {item.price?.toFixed(2) ?? "0.00"}
+                                        {item.prefix}
+                                        {item.price.toFixed(2)}
                                       </p>
                                     </div>
                                     <p className="mt-1 line-clamp-2 text-sm text-gray-500">
-                                      {item.description ??
-                                        "No description available"}
+                                      {item.description ?? "No description available"}
                                     </p>
                                   </div>
                                   <div className="flex flex-1 items-end justify-between text-sm">
@@ -197,21 +139,21 @@ export default function ShoppingCart() {
                   <div className="border-t border-gray-200 px-4 py-6 sm:px-6">
                     <div className="flex justify-between text-base font-medium text-gray-900">
                       <p>Subtotal</p>
-                      <p>${getTotalPrice()}</p>
+                      <p>${getTotalPrice().toFixed(2)}</p>
                     </div>
                     <p className="mt-0.5 text-sm text-gray-500">
                       Shipping and taxes calculated at checkout.
                     </p>
                     <div className="mt-6">
                       <button
-                        disabled={cartItems.length === 0}
+                        disabled={getItemCount() === 0}
                         className="flex w-full items-center justify-center rounded-md border border-transparent bg-indigo-600 px-6 py-3 text-base font-medium text-white shadow-xs hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-gray-400"
                         onClick={() => {
                           router.push("/checkout");
                           setOpen(false);
                         }}
                       >
-                        Checkout ({cartItems.length} items)
+                        Checkout ({getItemCount()} items)
                       </button>
                     </div>
                     <div className="mt-6 flex justify-center text-center text-sm text-gray-500">
