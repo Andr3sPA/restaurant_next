@@ -85,9 +85,7 @@ const NavbarClient = ({
     { title: "Añadir plato", url: "/menu/register" },
   ];
   
-  // Función para obtener menú según rol
   const getMenuByRole = () => {
-    // Si está cargando o no hay sesión, mostrar menú básico
     if (status === "loading" || !session?.user?.role) {
       return [
         { title: "Home", url: "/" },
