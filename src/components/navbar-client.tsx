@@ -6,7 +6,6 @@ import Image from "next/image";
 import ShoppinCart from "@/components/shoppingCart";
 import { Role } from "@prisma/client";
 import { useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
 import {
   Accordion,
   AccordionContent,
@@ -59,73 +58,57 @@ const NavbarClient = ({
   menu,
 }: NavbarClientProps) => {
   const { data: session, status } = useSession();
-  const [selectedMenu, setSelectedMenu] = useState<MenuItem[]>([]);
-
-  // useEffect: Reacciona cuando la sesión cambia
-  useEffect(() => {
-    // Definir menús según el rol del usuario
-    const clientMenu = [
-      { title: "Home", url: "/" },
-      { title: "Menu", url: "/menu" },
-      { title: "Historial", url: "/reservations" },
-    ];
+  
+  // Definir menús según el rol del usuario
+  const clientMenu = [
+    { title: "Home", url: "/" },
+    { title: "Menu", url: "/menu" },
+    { title: "Historial", url: "/reservations" },
+  ];
+  
+  const employeeMenu = [
+    { title: "Home", url: "/" },
+    { title: "Menu", url: "/menu" },
+    { title: "Pedidos", url: "/orders" },
+    { title: "Historial", url: "/reservations" },
+    { title: "Inventario", url: "/menu/inventory" },
+    { title: "Añadir plato", url: "/menu/register" },
+  ];
+  
+  const adminMenu = [
+    { title: "Home", url: "/" },
+    { title: "Menu", url: "/menu" },
+    { title: "Pedidos", url: "/orders" },
+    { title: "Historial", url: "/reservations" },
+    { title: "Usuarios", url: "/users" },
+    { title: "Inventario", url: "/menu/inventory" },
+    { title: "Añadir plato", url: "/menu/register" },
+  ];
+  
+  // Función para obtener menú según rol
+  const getMenuByRole = () => {
+    // Si está cargando o no hay sesión, mostrar menú básico
+    if (status === "loading" || !session?.user?.role) {
+      return [
+        { title: "Home", url: "/" },
+        { title: "Menu", url: "/menu" },
+      ];
+    }
     
-    const employeeMenu = [
-      { title: "Home", url: "/" },
-      { title: "Menu", url: "/menu" },
-      { title: "Pedidos", url: "/orders" },
-      { title: "Historial", url: "/reservations" },
-      { title: "Inventario", url: "/menu/inventory" },
-      { title: "Añadir plato", url: "/menu/register" },
-    ];
-    
-    const adminMenu = [
-      { title: "Home", url: "/" },
-      { title: "Menu", url: "/menu" },
-      { title: "Pedidos", url: "/orders" },
-      { title: "Historial", url: "/reservations" },
-      { title: "Usuarios", url: "/users" },
-      { title: "Inventario", url: "/menu/inventory" },
-      { title: "Añadir plato", url: "/menu/register" },
-    ];
-    
-    // Función para obtener menú según rol
-    const getMenuByRole = () => {
-      if (!session?.user?.role) {
-        return [
-          { title: "Home", url: "/" },
-          { title: "Menu", url: "/menu" },
-        ];
-      }
-      
-      switch (session.user.role) {
-        case Role.CLIENT:
-          return clientMenu;
-        case Role.EMPLOYEE:
-          return employeeMenu;
-        case Role.ADMIN:
-          return adminMenu;
-        default:
-          return adminMenu;
-      }
-    };
-    
-    // Actualizar menú cuando cambie la sesión
-    setSelectedMenu(menu ?? getMenuByRole());
-  }, [session, menu]); // ← Dependencias: se ejecuta cuando session o menu cambian
-
-  // Mostrar loading mientras se carga la sesión
-  if (status === "loading") {
-    return (
-      <section className="py-4">
-        <div className="container">
-          <div className="flex justify-center">
-            <div className="animate-pulse">Loading...</div>
-          </div>
-        </div>
-      </section>
-    );
-  }
+    switch (session.user.role) {
+      case Role.CLIENT:
+        return clientMenu;
+      case Role.EMPLOYEE:
+        return employeeMenu;
+      case Role.ADMIN:
+        return adminMenu;
+      default:
+        return adminMenu;
+    }
+  };
+  
+  // Calcular el menú seleccionado
+  const selectedMenu = menu ?? getMenuByRole();
 
   return (
     <section className="py-4">
