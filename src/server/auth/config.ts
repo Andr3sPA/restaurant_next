@@ -1,6 +1,6 @@
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { type DefaultSession, type NextAuthConfig } from "next-auth";
-import CredentialsProvider from "next-auth/providers/credentials"
+import CredentialsProvider from "next-auth/providers/credentials";
 import { db } from "@/server/db";
 import { createCaller } from "../api/root";
 import { createTRPCContext } from "../api/trpc";
@@ -29,53 +29,53 @@ declare module "next-auth" {
  */
 export const authConfig = {
   providers: [
-      CredentialsProvider({
-    // The name to display on the sign in form (e.g. 'Sign in with...')
-    name: 'Credentials',
-    // The credentials is used to generate a suitable form on the sign in page.
-    // You can specify whatever fields you are expecting to be submitted.
-    // e.g. domain, username, password, 2FA token, etc.
-    // You can pass any HTML attribute to the <input> tag through the object.
-    credentials: {
-      email: { label: "Email", type: "text", placeholder: "jsmith" },
-      password: { label: "Password", type: "password" }
-    },
-    async authorize(credentials, req) {
-      // You need to provide your own logic here that takes the credentials
-      // submitted and returns either a object representing a user or value
-      // that is false/null if the credentials are invalid.
-      // e.g. return { id: 1, name: 'J Smith', email: 'jsmith@example.com' }
-      // You can also use the `req` object to obtain additional parameters
-      // (i.e., the request IP address)
-      const ctx = await createTRPCContext({ headers: req?.headers});
-      const caller = createCaller(ctx);
+    CredentialsProvider({
+      // The name to display on the sign in form (e.g. 'Sign in with...')
+      name: "Credentials",
+      // The credentials is used to generate a suitable form on the sign in page.
+      // You can specify whatever fields you are expecting to be submitted.
+      // e.g. domain, username, password, 2FA token, etc.
+      // You can pass any HTML attribute to the <input> tag through the object.
+      credentials: {
+        email: { label: "Email", type: "text", placeholder: "jsmith" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials, req) {
+        // You need to provide your own logic here that takes the credentials
+        // submitted and returns either a object representing a user or value
+        // that is false/null if the credentials are invalid.
+        // e.g. return { id: 1, name: 'J Smith', email: 'jsmith@example.com' }
+        // You can also use the `req` object to obtain additional parameters
+        // (i.e., the request IP address)
+        const ctx = await createTRPCContext({ headers: req?.headers });
+        const caller = createCaller(ctx);
 
-      if (
-        !credentials ||
-        typeof credentials.email !== "string" ||
-        typeof credentials.password !== "string"
-      ) {
-        return null;
-      }
-
-      try {
-        const user = await caller.user.authenticateUser({
-          email: credentials.email,
-          password: credentials.password,
-        });
-        // If no error and we have user data, return it
-        if (user) {
-          return user;
+        if (
+          !credentials ||
+          typeof credentials.email !== "string" ||
+          typeof credentials.password !== "string"
+        ) {
+          return null;
         }
-        // Return null if user data could not be retrieved or password was incorrect
-        return null;
-      } catch (error) {
-        // Handle errors from authenticateUser, e.g., user not found
-        console.error("Authentication error:", error);
-        return null;
-      }
-    }
-  })
+
+        try {
+          const user = await caller.user.authenticateUser({
+            email: credentials.email,
+            password: credentials.password,
+          });
+          // If no error and we have user data, return it
+          if (user) {
+            return user;
+          }
+          // Return null if user data could not be retrieved or password was incorrect
+          return null;
+        } catch (error) {
+          // Handle errors from authenticateUser, e.g., user not found
+          console.error("Authentication error:", error);
+          return null;
+        }
+      },
+    }),
     /**
      * ...add more providers here.
      *
@@ -87,15 +87,15 @@ export const authConfig = {
      */
   ],
   adapter: PrismaAdapter(db),
-  pages:{
-     signIn: '/user/signin',
+  pages: {
+    signIn: "/user/signin",
   },
   session: {
-     strategy: "jwt",
-   },
+    strategy: "jwt",
+  },
   callbacks: {
     jwt({ token, user }) {
-      if (user && 'role' in user) {
+      if (user && "role" in user) {
         token.role = user.role;
       }
       return token;

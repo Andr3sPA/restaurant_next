@@ -6,6 +6,14 @@ import {
 } from "@/server/api/trpc";
 import { v2 as cloudinary } from "cloudinary";
 import { TRPCError } from "@trpc/server";
+
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
 const MAX_FILE_SIZE = 1024 * 1024 * 5;
 const ACCEPTED_IMAGE_MIME_TYPES = [
   "image/jpeg",
@@ -101,7 +109,7 @@ export const menuRouter = createTRPCRouter({
       orderBy: {
         createdAt: "desc",
       },
-    })
+    });
   }),
   getMenuItemDetails: publicProcedure
     .input(z.coerce.string())
@@ -113,4 +121,3 @@ export const menuRouter = createTRPCRouter({
       });
     }),
 });
-

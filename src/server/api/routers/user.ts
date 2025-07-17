@@ -1,6 +1,10 @@
 import { z } from "zod";
 import bcrypt from "bcrypt";
-import { adminProcedure, createTRPCRouter, publicProcedure } from "@/server/api/trpc";
+import {
+  adminProcedure,
+  createTRPCRouter,
+  publicProcedure,
+} from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { Role } from "@prisma/client";
 
@@ -40,20 +44,19 @@ export const userRouter = createTRPCRouter({
         role: userFromDb.role, // Assuming you have a role field in your user model
       };
     }),
-  getUsers : adminProcedure
-    .query(async ({ ctx }) => {
-      return ctx.db.user.findMany({
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          role: true,
-        },
-        orderBy: {
-          name: 'desc',
-        },
-      });
-    }),
+  getUsers: adminProcedure.query(async ({ ctx }) => {
+    return ctx.db.user.findMany({
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+      },
+      orderBy: {
+        name: "desc",
+      },
+    });
+  }),
   changeUserRole: adminProcedure
     .input(
       z.object({
@@ -73,7 +76,7 @@ export const userRouter = createTRPCRouter({
         },
       });
     }),
-    deleteUser: adminProcedure
+  deleteUser: adminProcedure
     .input(z.object({ userId: z.string() }))
     .mutation(async ({ ctx, input }) => {
       return ctx.db.user.delete({
@@ -83,6 +86,7 @@ export const userRouter = createTRPCRouter({
   registerUser: publicProcedure
     .input(
       z.object({
+        name: z.string().min(1, { message: "Name is required" }),
         email: z.string().email(),
         password: z
           .string()
@@ -104,10 +108,10 @@ export const userRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       return ctx.db.user.create({
         data: {
+          name: input.name,
           email: input.email,
           password: await bcrypt.hash(input.password, 10),
         },
       });
     }),
 });
-

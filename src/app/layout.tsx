@@ -40,11 +40,11 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="min-h-dvh">
+      <body className="flex min-h-screen flex-col antialiased">
         <TRPCReactProvider>
           <SessionProvider>
             <CartProvider>
-              <NavbarClient />
+              {/* <NavbarClient /> */}
               <NuqsAdapter>
                 <Suspense
                   fallback=<Loader className="absolute top-1/2 left-1/2 -translate-1/2 scale-150 animate-spin" />
