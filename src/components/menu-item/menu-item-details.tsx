@@ -144,7 +144,7 @@ function MenuItemDetails({
             <PriceFormat
               prefix={prefix}
               value={price ?? 0}
-              className="text-4xl font-semibold"
+              className="text-3xl font-semibold"
             />
 
             <div className="flex flex-row flex-wrap gap-4">
