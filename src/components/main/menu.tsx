@@ -89,7 +89,7 @@ export default function Menu() {
                 Descripcion del plato
               </DialogTitle>
             </DialogHeader>
-            <div className="flex h-full w-[500px] max-w-full items-center justify-center sm:w-[600px] md:w-[700px] lg:w-[800px] xl:w-[900px]">
+            <div className="flex h-full w-[500px] max-w-full items-center justify-center overflow-y-auto sm:w-[600px] md:w-[700px] lg:w-[800px] xl:w-[900px]">
               {isDetailsLoading ? (
                 <div className="w-full py-10 text-center">Cargando...</div>
               ) : itemDetails ? (
