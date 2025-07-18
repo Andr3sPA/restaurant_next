@@ -3,7 +3,6 @@
 import { Menu } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import ShoppinCart from "@/components/shoppingCart";
 import { Role } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import {
@@ -58,41 +57,29 @@ const NavbarClient = ({
   menu,
 }: NavbarClientProps) => {
   const { data: session, status } = useSession();
-  
+
   // Definir menús según el rol del usuario
-  const clientMenu = [
-    { title: "Home", url: "/" },
-    { title: "Menu", url: "/menu" },
-    { title: "Historial", url: "/reservations" },
-  ];
-  
+  const clientMenu = [{ title: "Inicio", url: "/" }];
+
   const employeeMenu = [
-    { title: "Home", url: "/" },
-    { title: "Menu", url: "/menu" },
+    { title: "Inicio", url: "/" },
     { title: "Pedidos", url: "/orders" },
-    { title: "Historial", url: "/reservations" },
     { title: "Inventario", url: "/menu/inventory" },
     { title: "Añadir plato", url: "/menu/register" },
   ];
-  
+
   const adminMenu = [
-    { title: "Home", url: "/" },
-    { title: "Menu", url: "/menu" },
+    { title: "Inicio", url: "/" },
     { title: "Pedidos", url: "/orders" },
-    { title: "Historial", url: "/reservations" },
     { title: "Usuarios", url: "/users" },
     { title: "Inventario", url: "/menu/inventory" },
-    { title: "Añadir plato", url: "/menu/register" },
   ];
-  
+
   const getMenuByRole = () => {
     if (status === "loading" || !session?.user?.role) {
-      return [
-        { title: "Home", url: "/" },
-        { title: "Menu", url: "/menu" },
-      ];
+      return [{ title: "Inicio", url: "/" }];
     }
-    
+
     switch (session.user.role) {
       case Role.CLIENT:
         return clientMenu;
@@ -104,7 +91,7 @@ const NavbarClient = ({
         return adminMenu;
     }
   };
-  
+
   // Calcular el menú seleccionado
   const selectedMenu = menu ?? getMenuByRole();
 
@@ -135,9 +122,8 @@ const NavbarClient = ({
               </NavigationMenu>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-2">
-            <ShoppinCart />
             <DarkModeSwitch />
             <Button asChild variant="outline" size="sm">
               <Link href={session ? "/api/auth/signout" : "/user/signin"}>
@@ -171,7 +157,7 @@ const NavbarClient = ({
                   <Menu className="size-4" />
                 </Button>
               </SheetTrigger>
-              <SheetContent className="overflow-y-auto">
+              <SheetContent className="w-fit overflow-y-auto px-6">
                 <SheetHeader>
                   <SheetTitle>
                     <a href={logo.url} className="flex items-center gap-2">
@@ -185,7 +171,7 @@ const NavbarClient = ({
                     </a>
                   </SheetTitle>
                 </SheetHeader>
-                <div className="flex flex-col gap-6 p-4">
+                <div className="flex w-fit flex-col items-center gap-6 p-4">
                   <Accordion
                     type="single"
                     collapsible
@@ -195,6 +181,7 @@ const NavbarClient = ({
                   </Accordion>
 
                   <div className="flex flex-col gap-3">
+                    <DarkModeSwitch />
                     <Button asChild variant="outline">
                       <Link
                         href={session ? "/api/auth/signout" : "/user/signin"}
@@ -202,6 +189,7 @@ const NavbarClient = ({
                         {session ? "Sign out" : "Sign in"}
                       </Link>
                     </Button>
+
                     {!session && (
                       <Button asChild>
                         <Link href="/user/signup">Sign up</Link>

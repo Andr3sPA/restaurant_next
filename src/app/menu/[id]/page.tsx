@@ -1,5 +1,6 @@
 // Página de detalles de un elemento del menú. Muestra información detallada del ítem seleccionado.
 import { MenuItemDetails } from "@/components/menu-item/menu-item-details";
+import ReturnButton from "@/components/ReturnButton";
 import { api } from "@/trpc/server";
 
 export default async function MenuItemPage({
@@ -13,7 +14,11 @@ export default async function MenuItemPage({
 
   // Renderiza los detalles del elemento del menú
   return (
-    <div className="my-16 flex items-center justify-center">
+    <div className="m-auto my-16 flex w-auto flex-col gap-4">
+      <div className="flex w-full items-center gap-2">
+        <ReturnButton />
+        <span className="text-lg font-light">Regresar</span>
+      </div>
       {item ? (
         <MenuItemDetails
           id={item.id}

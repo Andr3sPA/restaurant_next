@@ -1,21 +1,13 @@
 "use client";
 
 import { api } from "@/trpc/react";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "../ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import Image from "next/image";
-import { ShoppingCart } from "lucide-react";
-import { useCart } from "@/contexts/CartContext";
+import { useRouter } from "next/navigation";
 
 // Componente para mostrar la lista de productos del menú y permitir añadirlos al carrito
 export default function Menu() {
-  const { addItem } = useCart();
+  const router = useRouter();
 
   const {
     data: menuItems = [],
@@ -29,7 +21,11 @@ export default function Menu() {
   return (
     <div className="grid grid-cols-1 gap-6 pb-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {menuItems.map((item) => (
-        <Card key={item.id} className="w-full max-w-sm gap-2">
+        <Card
+          key={item.id}
+          className="w-full max-w-sm gap-2 transition-all duration-200 ease-out hover:cursor-pointer hover:brightness-110"
+          onClick={() => router.push(`/menu/${item.id}`)}
+        >
           <CardHeader className="flex flex-col items-center">
             <CardTitle>{item.name}</CardTitle>
             <Image
@@ -37,31 +33,12 @@ export default function Menu() {
               width={100}
               height={100}
               alt={item.description ?? item.name}
-              className="rounded-md object-cover"
-            ></Image>
+              className="rounded-md object-fill"
+            />
           </CardHeader>
           <CardContent className="flex-grow text-sm sm:text-base">
             <p>{item.description}</p>
           </CardContent>
-          <CardFooter>
-            <Button
-              className="w-full"
-              disabled={!item.available}
-              onClick={() =>
-                addItem({
-                  id: item.id,
-                  title: item.name,
-                  description: item.description ?? undefined,
-                  imageUrl: item.image ?? "",
-                  prefix: item.currency,
-                  price: item.price,
-                })
-              }
-            >
-              <ShoppingCart />
-              {item.available ? "Añadir al carrito" : "No disponible"}
-            </Button>
-          </CardFooter>
         </Card>
       ))}
     </div>

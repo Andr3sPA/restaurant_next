@@ -12,6 +12,7 @@ import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { CartProvider } from "@/contexts/CartContext";
 import { SessionProvider } from "next-auth/react";
 import ShoppingCart from "@/components/shoppingCart";
+import { NavbarClient } from "@/components/navbar-client";
 
 export const metadata: Metadata = {
   title: "Create T3 App",
@@ -47,7 +48,7 @@ export default function RootLayout({
         <TRPCReactProvider>
           <SessionProvider>
             <CartProvider>
-              {/* <NavbarClient /> */}
+              <NavbarClient />
               <NuqsAdapter>
                 <Suspense
                   fallback=<Loader className="absolute top-1/2 left-1/2 -translate-1/2 scale-150 animate-spin" />
