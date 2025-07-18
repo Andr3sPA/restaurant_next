@@ -15,22 +15,28 @@ import { useCart } from "@/contexts/CartContext";
 export default function ShoppingCart() {
   const [open, setOpen] = useState(false);
   const router = useRouter();
-  const { items: cartItems, removeItem, getTotalPrice, getItemCount } = useCart();
+  const {
+    items: cartItems,
+    removeItem,
+    getTotalPrice,
+    getItemCount,
+  } = useCart();
   return (
+    // This div will be styled in the layout file
     <div>
       <button
         onClick={() => setOpen(true)}
-        className="relative flex items-center gap-2 rounded-md bg-gray-950/5 px-3 py-2 text-sm font-semibold text-gray-900 hover:bg-gray-950/10"
+        className="relative flex h-14 w-14 items-center justify-center rounded-full bg-indigo-600 text-white shadow-lg transition-transform hover:scale-110"
       >
-        <ShoppingCartIcon className="h-5 w-5" />
-        <span>Cart</span>
+        <span className="sr-only">Open cart</span>
+        <ShoppingCartIcon className="h-7 w-7" />
         {getItemCount() > 0 && (
-          <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white">
+          <span className="absolute -top-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-xs font-bold">
             {getItemCount()}
           </span>
         )}
       </button>
-      <Dialog open={open} onClose={setOpen} className="relative z-10">
+      <Dialog open={open} onClose={setOpen} className="relative z-50">
         <DialogBackdrop
           transition
           className="fixed inset-0 bg-gray-500/75 transition-opacity duration-500 ease-in-out data-closed:opacity-0"
@@ -101,9 +107,7 @@ export default function ShoppingCart() {
                                   <div>
                                     <div className="flex justify-between text-base font-medium text-gray-900">
                                       <h3>
-                                        <span>
-                                          {item.title}
-                                        </span>
+                                        <span>{item.title}</span>
                                       </h3>
                                       <p className="ml-4">
                                         {item.prefix}
@@ -111,7 +115,8 @@ export default function ShoppingCart() {
                                       </p>
                                     </div>
                                     <p className="mt-1 line-clamp-2 text-sm text-gray-500">
-                                      {item.description ?? "No description available"}
+                                      {item.description ??
+                                        "No description available"}
                                     </p>
                                   </div>
                                   <div className="flex flex-1 items-end justify-between text-sm">

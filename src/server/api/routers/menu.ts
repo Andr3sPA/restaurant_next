@@ -101,7 +101,12 @@ export const menuRouter = createTRPCRouter({
       orderBy: {
         createdAt: "desc",
       },
-    })
+    });
+  }),
+  getPublicMenuItems: publicProcedure.query(async ({ ctx }) => {
+    return await ctx.db.menuItem.findMany({
+      orderBy: [{ available: "desc" }, { name: "asc" }],
+    });
   }),
   getMenuItemDetails: publicProcedure
     .input(z.coerce.string())
@@ -113,4 +118,3 @@ export const menuRouter = createTRPCRouter({
       });
     }),
 });
-

@@ -5,9 +5,10 @@ export default async function SidebarInfo() {
   const session = await auth();
 
   return (
-    <div className="flex flex-col items-center gap-y-4">
-      <CircleUserRound />
+    <div className="flex flex-col items-center gap-y-2">
+      <CircleUserRound size={35} />
       <h1 className="text-sm font-semibold sm:text-lg">{session?.user.name}</h1>
+      {session?.user.role}
     </div>
   );
 }

@@ -1,30 +1,15 @@
 import Link from "next/link";
+import { Button } from "../ui/button";
 
 interface buttonLinkProps {
-  href?: string;
+  href: string;
   children: React.ReactNode;
-  onClick?: () => void;
 }
 
-export default function buttonLink({
-  href,
-  children,
-  onClick,
-}: buttonLinkProps) {
-  const className =
-    "rounded-full bg-white/10 px-10 py-3 font-semibold no-underline transition hover:bg-white/20";
-
-  if (onClick) {
-    return (
-      <button onClick={onClick} className={className}>
-        {children}
-      </button>
-    );
-  }
-
+export default function buttonLink({ href, children }: buttonLinkProps) {
   return (
-    <Link href={href!} className={className}>
-      {children}
-    </Link>
+    <Button asChild className="w-full">
+      <Link href={href}>{children}</Link>
+    </Button>
   );
 }

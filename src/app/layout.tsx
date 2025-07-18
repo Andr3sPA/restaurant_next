@@ -11,6 +11,7 @@ import { NavbarClient } from "@/components/navbar-client";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { CartProvider } from "@/contexts/CartContext";
 import { SessionProvider } from "next-auth/react";
+import ShoppingCart from "@/components/shoppingCart";
 
 export const metadata: Metadata = {
   title: "Create T3 App",
@@ -50,6 +51,9 @@ export default function RootLayout({
                   fallback=<Loader className="absolute top-1/2 left-1/2 -translate-1/2 scale-150 animate-spin" />
                 >
                   {children}
+                  <div className="fixed right-8 bottom-8 z-40">
+                    <ShoppingCart />
+                  </div>
                 </Suspense>
               </NuqsAdapter>
             </CartProvider>

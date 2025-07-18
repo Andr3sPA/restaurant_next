@@ -2,22 +2,23 @@
 
 import { signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
-
-import ButtonLink from "@/components/main/buttonLink";
+import { Button } from "../ui/button";
 
 export default function Logged() {
   const router = useRouter();
 
   return (
-    <div className="mt-4 flex justify-center gap-4">
-      <ButtonLink
+    <div className="mt-4 w-full">
+      <Button
         onClick={() => {
           void signOut();
           router.push("/");
         }}
+        variant={"destructive"}
+        className="w-full"
       >
         Cerrar sesion
-      </ButtonLink>
+      </Button>
     </div>
   );
 }
