@@ -6,6 +6,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
+  ArrowLeft,
   CheckCheckIcon,
   CreditCard,
   Loader2Icon,
@@ -35,11 +36,13 @@ const schema = z.object({
   paymentMethod: z.enum(["credit-card", "cash"]),
 });
 
+// Componente de checkout que maneja la finalización de compras con formulario de datos del cliente, métodos de pago y simulación de campos de tarjeta de crédito
 export function Checkout() {
   const { items: cartItems, getTotalPrice, clearCart } = useCart();
   const [subtotal, setSubtotal] = useState(0);
   const [total, setTotal] = useState(0);
-  
+  const [expiryDate, setExpiryDate] = useState("");
+
   const form = useForm<z.infer<typeof schema>>({
     defaultValues: {
       address: "",
@@ -48,9 +51,48 @@ export function Checkout() {
     resolver: zodResolver(schema),
   });
 
+  const paymentMethod = form.watch("paymentMethod");
+
+  const handleExpiryDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+
+    // Remove all non-digits
+    const digitsOnly = value.replace(/\D/g, "");
+
+    // Format with slash
+    if (digitsOnly.length === 0) {
+      setExpiryDate("");
+    } else if (digitsOnly.length <= 2) {
+      setExpiryDate(digitsOnly);
+    } else {
+      setExpiryDate(digitsOnly.slice(0, 2) + "/" + digitsOnly.slice(2, 4));
+    }
+  };
+
+  const handleExpiryDateKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+  ) => {
+    // Handle backspace to remove the slash and previous character together
+    if (e.key === "Backspace") {
+      const currentValue = expiryDate;
+      const cursorPosition = (e.target as HTMLInputElement).selectionStart ?? 0;
+
+      // If we're deleting the character right after the slash
+      if (cursorPosition === 4 && currentValue.length === 5) {
+        e.preventDefault();
+        setExpiryDate(currentValue.slice(0, 2));
+      }
+      // If we're deleting the slash itself
+      else if (cursorPosition === 3 && currentValue[2] === "/") {
+        e.preventDefault();
+        setExpiryDate(currentValue.slice(0, 1));
+      }
+    }
+  };
+
   useEffect(() => {
     const calculatedSubtotal = getTotalPrice();
-    const calculatedTotal = calculatedSubtotal + (calculatedSubtotal * 0.1); // Adding 10% tax
+    const calculatedTotal = calculatedSubtotal + calculatedSubtotal * 0.1; // Adding 10% tax
     setSubtotal(calculatedSubtotal);
     setTotal(calculatedTotal);
   }, [cartItems, getTotalPrice]);
@@ -59,26 +101,37 @@ export function Checkout() {
   const { mutate, isPending, isSuccess } = api.order.createNew.useMutation({
     onSuccess: () => {
       clearCart(); // Limpiar el carrito después de crear la orden exitosamente
-    }
+    },
   });
 
   return (
     <div className="flex min-h-screen flex-col">
       <main className="container mx-auto grid flex-1 grid-cols-1 gap-8 px-6 py-12 md:grid-cols-3">
         <div className="col-span-2">
-          <h1 className="mb-6 text-3xl font-bold">Checkout</h1>
+          <div className="mb-6 flex items-center gap-4">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => router.push("/")}
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <h1 className="text-3xl font-bold">Finalizar Compra</h1>
+          </div>
           <Card className="p-0">
             <CardContent className="p-8">
               {isSuccess ? (
                 <div className="flex flex-col items-center gap-4">
-                  <h2 className="mb-6 text-2xl font-bold">Order placed!</h2>
-                  <p>You can continue browsing or wait for your order.</p>
+                  <h2 className="mb-6 text-2xl font-bold">
+                    ¡Pedido realizado!
+                  </h2>
+                  <p>Puedes continuar navegando o esperar tu pedido.</p>
                   <div className="flex justify-between gap-4 p-4">
                     <Button onClick={() => router.back()} variant={"secondary"}>
-                      Go back
+                      Volver
                     </Button>
                     <Button onClick={() => router.push("/")}>
-                      Continue browsing
+                      Continuar navegando
                     </Button>
                   </div>
                 </div>
@@ -98,12 +151,12 @@ export function Checkout() {
                       name="address"
                       render={({ field }) => (
                         <FormItem className="col-span-2">
-                          <FormLabel>Address</FormLabel>
+                          <FormLabel>Dirección</FormLabel>
                           <FormControl>
                             <Textarea
                               {...field}
                               rows={3}
-                              placeholder="123 Main St, Anytown USA"
+                              placeholder="Calle Principal 123, Ciudad"
                             />
                           </FormControl>
                           <FormMessage />
@@ -115,7 +168,7 @@ export function Checkout() {
                       name="phone"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Phone</FormLabel>
+                          <FormLabel>Teléfono</FormLabel>
                           <FormControl>
                             <Input {...field} placeholder="1234567890" />
                           </FormControl>
@@ -128,7 +181,7 @@ export function Checkout() {
                       name="paymentMethod"
                       render={({ field }) => (
                         <FormItem className="col-span-2">
-                          <FormLabel>Payment Method</FormLabel>
+                          <FormLabel>Método de Pago</FormLabel>
                           <FormControl>
                             <RadioGroup
                               {...field}
@@ -144,14 +197,14 @@ export function Checkout() {
                                 />
                                 <FormLabel htmlFor="credit-card">
                                   <CreditCard className="mr-2 h-6 w-6" />
-                                  Credit Card
+                                  Tarjeta de Crédito
                                 </FormLabel>
                               </div>
                               <div className="flex items-center gap-4">
                                 <RadioGroupItem id="cash" value="cash" />
                                 <FormLabel htmlFor="cash">
                                   <Wallet2 className="mr-2 h-6 w-6" />
-                                  Cash
+                                  Efectivo
                                 </FormLabel>
                               </div>
                             </RadioGroup>
@@ -169,10 +222,41 @@ export function Checkout() {
                         {isPending ? (
                           <Loader2Icon className="animate-spin" />
                         ) : (
-                          "Place Order"
+                          "Realizar Pedido"
                         )}
                       </Button>
                     </div>
+                    {paymentMethod === "credit-card" && (
+                      <div className="col-span-2 mt-4 rounded-lg border bg-gray-50 p-4">
+                        <h3 className="mb-4 text-lg font-semibold">
+                          Información de Tarjeta de Crédito
+                        </h3>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="col-span-2">
+                            <FormLabel>Número de Tarjeta</FormLabel>
+                            <Input placeholder="1234 5678 9012 3456" />
+                          </div>
+                          <div>
+                            <FormLabel>Fecha de Vencimiento</FormLabel>
+                            <Input
+                              placeholder="MM/AA"
+                              value={expiryDate}
+                              onChange={handleExpiryDateChange}
+                              onKeyDown={handleExpiryDateKeyDown}
+                              maxLength={5}
+                            />
+                          </div>
+                          <div>
+                            <FormLabel>CVC</FormLabel>
+                            <Input placeholder="123" maxLength={3} />
+                          </div>
+                          <div className="col-span-2">
+                            <FormLabel>Nombre del Titular</FormLabel>
+                            <Input placeholder="Juan Pérez" />
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </form>
                 </Form>
               )}
@@ -182,7 +266,7 @@ export function Checkout() {
         <Card className="p-0">
           <CardContent className="p-8">
             <h2 className="mb-6 flex items-center text-2xl font-bold">
-              Order Summary
+              Resumen del Pedido
               {isSuccess && <CheckCheckIcon color="lime" className="m-2" />}
             </h2>
             <div className="space-y-4">
@@ -200,7 +284,10 @@ export function Checkout() {
                   <div key={index} className="flex items-center gap-2">
                     <Package className="h-5 w-5 text-gray-500" />
                     <span>{item.title}</span>
-                    <span className="ml-auto">{item.prefix}{item.price.toFixed(2)}</span>
+                    <span className="ml-auto">
+                      {item.prefix}
+                      {item.price.toFixed(2)}
+                    </span>
                   </div>
                 ))}
               </div>

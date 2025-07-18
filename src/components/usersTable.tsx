@@ -1,9 +1,9 @@
 "use client";
- 
+
 import { DataTable } from "@/components/data-table/data-table";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
- 
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,46 +28,44 @@ import { useDataTable } from "@/hooks/use-data-table";
 import { api } from "@/trpc/react";
 import { Role } from "@prisma/client";
 import { toast } from "sonner";
- 
+
 import type { Column, ColumnDef } from "@tanstack/react-table";
-import {
-  Crown,
-  Text,
-  Trash2,
-  User,
-  Users,
-} from "lucide-react";
+import { Crown, Text, Trash2, User, Users } from "lucide-react";
 import { parseAsArrayOf, parseAsString, useQueryState } from "nuqs";
 import * as React from "react";
 
 // Componente para confirmar eliminación de usuario
-function DeleteUserDialog({ user, onDelete }: { 
-  user: { id: string; name: string | null; email: string; role: Role }; 
+function DeleteUserDialog({
+  user,
+  onDelete,
+}: {
+  user: { id: string; name: string | null; email: string; role: Role };
   onDelete: (userId: string) => void;
 }) {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
         <Button variant="destructive" size="sm">
-          <Trash2 className="w-4 h-4 mr-1" />
-          Delete User
+          <Trash2 className="mr-1 h-4 w-4" />
+          Eliminar Usuario
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+          <AlertDialogTitle>¿Estás completamente seguro?</AlertDialogTitle>
           <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete the user{" "}
-            <strong>{user.name ?? user.email}</strong> and remove all their data from the system.
+            Esta acción no se puede deshacer. Esto eliminará permanentemente al
+            usuario <strong>{user.name ?? user.email}</strong> y removerá todos
+            sus datos del sistema.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction 
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <AlertDialogAction
             onClick={() => onDelete(user.id)}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
-            Delete User
+            Eliminar Usuario
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
@@ -76,8 +74,11 @@ function DeleteUserDialog({ user, onDelete }: {
 }
 
 // Componente para cambiar el rol del usuario
-function RoleSelector({ user, onRoleChange }: { 
-  user: { id: string; name: string | null; email: string; role: Role }; 
+function RoleSelector({
+  user,
+  onRoleChange,
+}: {
+  user: { id: string; name: string | null; email: string; role: Role };
   onRoleChange: (userId: string, newRole: Role) => void;
 }) {
   const getRoleIcon = (role: Role) => {
@@ -106,6 +107,19 @@ function RoleSelector({ user, onRoleChange }: {
     }
   };
 
+  const getRoleLabel = (role: Role) => {
+    switch (role) {
+      case Role.ADMIN:
+        return "ADMIN";
+      case Role.EMPLOYEE:
+        return "EMPLOYEE";
+      case Role.CLIENT:
+        return "CLIENT";
+      default:
+        return role;
+    }
+  };
+
   const Icon = getRoleIcon(user.role);
 
   return (
@@ -115,34 +129,35 @@ function RoleSelector({ user, onRoleChange }: {
     >
       <SelectTrigger className="w-auto border-none shadow-none">
         <Badge variant={getRoleVariant(user.role)} className="capitalize">
-          <Icon className="w-3 h-3 mr-1" />
-          {user.role.toLowerCase()}
+          <Icon className="mr-1 h-3 w-3" />
+          {getRoleLabel(user.role)}
         </Badge>
       </SelectTrigger>
       <SelectContent>
         <SelectItem value={Role.CLIENT}>
           <div className="flex items-center gap-2">
-            <User className="w-4 h-4" />
-            Client
+            <User className="h-4 w-4" />
+            CLIENT
           </div>
         </SelectItem>
         <SelectItem value={Role.EMPLOYEE}>
           <div className="flex items-center gap-2">
-            <Users className="w-4 h-4" />
-            Employee
+            <Users className="h-4 w-4" />
+            EMPLOYEE
           </div>
         </SelectItem>
         <SelectItem value={Role.ADMIN}>
           <div className="flex items-center gap-2">
-            <Crown className="w-4 h-4" />
-            Admin
+            <Crown className="h-4 w-4" />
+            ADMIN
           </div>
         </SelectItem>
       </SelectContent>
     </Select>
   );
 }
- 
+
+// Componente para gestionar usuarios con tabla que muestra información básica y permite cambiar roles y eliminar usuarios
 export function UsersTable() {
   const [name] = useQueryState("name", parseAsString.withDefault(""));
   const [role] = useQueryState(
@@ -150,62 +165,71 @@ export function UsersTable() {
     parseAsArrayOf(parseAsString).withDefault([]),
   );
 
-  // Fetch users using tRPC
-  const { data: users = [], isLoading, error, refetch } = api.user.getUsers.useQuery();
-  
-  // Definir el tipo basado en los datos reales
-  type UserData = typeof users[number];
+  // Obtener usuarios usando tRPC
+  const {
+    data: users = [],
+    isLoading,
+    error,
+    refetch,
+  } = api.user.getUsers.useQuery();
 
-  // Mutation para cambiar el rol
+  // Definir el tipo basado en los datos reales
+  type UserData = (typeof users)[number];
+
+  // Mutación para cambiar el rol
   const changeRoleMutation = api.user.changeUserRole.useMutation({
     onSuccess: () => {
-      toast.success("User role updated successfully");
+      toast.success("Rol de usuario actualizado exitosamente");
       void refetch(); // Refrescar la tabla
     },
     onError: (error) => {
-      toast.error(`Failed to update user role: ${error.message}`);
+      toast.error(`Error al actualizar el rol del usuario: ${error.message}`);
     },
   });
 
-  // Mutation para eliminar usuario
+  // Mutación para eliminar usuario
   const deleteUserMutation = api.user.deleteUser.useMutation({
     onSuccess: () => {
-      toast.success("User deleted successfully");
+      toast.success("Usuario eliminado exitosamente");
       void refetch(); // Refrescar la tabla
     },
     onError: (error) => {
-      toast.error(`Failed to delete user: ${error.message}`);
+      toast.error(`Error al eliminar usuario: ${error.message}`);
     },
   });
 
   // Función para manejar el cambio de rol
-  const handleRoleChange = React.useCallback((userId: string, newRole: Role) => {
-    changeRoleMutation.mutate({
-      userId,
-      newRole,
-    });
-  }, [changeRoleMutation]);
+  const handleRoleChange = React.useCallback(
+    (userId: string, newRole: Role) => {
+      changeRoleMutation.mutate({
+        userId,
+        newRole,
+      });
+    },
+    [changeRoleMutation],
+  );
 
   // Función para manejar la eliminación de usuario
-  const handleDeleteUser = React.useCallback((userId: string) => {
-    deleteUserMutation.mutate({ userId });
-  }, [deleteUserMutation]);
- 
-  // Filter the data client-side
+  const handleDeleteUser = React.useCallback(
+    (userId: string) => {
+      deleteUserMutation.mutate({ userId });
+    },
+    [deleteUserMutation],
+  );
+
+  // Filtrar los datos del lado del cliente
   const filteredData = React.useMemo(() => {
     return users.filter((user) => {
       const matchesName =
         name === "" ||
         (user.name?.toLowerCase().includes(name.toLowerCase()) ?? false) ||
         user.email.toLowerCase().includes(name.toLowerCase());
-      const matchesRole =
-        role.length === 0 || 
-        role.includes(user.role);
- 
+      const matchesRole = role.length === 0 || role.includes(user.role);
+
       return matchesName && matchesRole;
     });
   }, [name, role, users]);
- 
+
   const columns = React.useMemo<ColumnDef<UserData>[]>(
     () => [
       {
@@ -219,14 +243,14 @@ export function UsersTable() {
             onCheckedChange={(value) =>
               table.toggleAllPageRowsSelected(!!value)
             }
-            aria-label="Select all"
+            aria-label="Seleccionar todo"
           />
         ),
         cell: ({ row }) => (
           <Checkbox
             checked={row.getIsSelected()}
             onCheckedChange={(value) => row.toggleSelected(!!value)}
-            aria-label="Select row"
+            aria-label="Seleccionar fila"
           />
         ),
         size: 32,
@@ -240,7 +264,7 @@ export function UsersTable() {
           <DataTableColumnHeader column={column} title="ID" />
         ),
         cell: ({ cell }) => (
-          <div className="text-sm text-muted-foreground font-mono">
+          <div className="text-muted-foreground font-mono text-sm">
             {cell.getValue<UserData["id"]>().substring(0, 8)}...
           </div>
         ),
@@ -250,19 +274,21 @@ export function UsersTable() {
         id: "name",
         accessorKey: "name",
         header: ({ column }: { column: Column<UserData, unknown> }) => (
-          <DataTableColumnHeader column={column} title="Name" />
+          <DataTableColumnHeader column={column} title="Nombre" />
         ),
         cell: ({ cell }) => {
           const name = cell.getValue<UserData["name"]>();
           return (
             <div className="font-medium">
-              {name ?? <span className="text-muted-foreground italic">No name</span>}
+              {name ?? (
+                <span className="text-muted-foreground italic">Sin nombre</span>
+              )}
             </div>
           );
         },
         meta: {
-          label: "Name",
-          placeholder: "Search names...",
+          label: "Nombre",
+          placeholder: "Buscar nombres...",
           variant: "text",
           icon: Text,
         },
@@ -283,39 +309,29 @@ export function UsersTable() {
         id: "role",
         accessorKey: "role",
         header: ({ column }: { column: Column<UserData, unknown> }) => (
-          <DataTableColumnHeader column={column} title="Role" />
+          <DataTableColumnHeader column={column} title="Rol" />
         ),
         cell: ({ row }) => {
           const user = row.original;
-          return (
-            <RoleSelector 
-              user={user} 
-              onRoleChange={handleRoleChange}
-            />
-          );
+          return <RoleSelector user={user} onRoleChange={handleRoleChange} />;
         },
         meta: {
-          label: "Role",
+          label: "Rol",
           variant: "multiSelect",
           options: [
-            { label: "Admin", value: Role.ADMIN, icon: Crown },
-            { label: "Employee", value: Role.EMPLOYEE, icon: Users },
-            { label: "Client", value: Role.CLIENT, icon: User },
+            { label: "ADMIN", value: Role.ADMIN, icon: Crown },
+            { label: "EMPLOYEE", value: Role.EMPLOYEE, icon: Users },
+            { label: "CLIENT", value: Role.CLIENT, icon: User },
           ],
         },
         enableColumnFilter: true,
       },
       {
         id: "delete",
-        header: "Actions",
+        header: "Acciones",
         cell: ({ row }) => {
           const user = row.original;
-          return (
-            <DeleteUserDialog 
-              user={user} 
-              onDelete={handleDeleteUser}
-            />
-          );
+          return <DeleteUserDialog user={user} onDelete={handleDeleteUser} />;
         },
         size: 120,
         enableSorting: false,
@@ -324,7 +340,7 @@ export function UsersTable() {
     ],
     [handleRoleChange, handleDeleteUser],
   );
- 
+
   const { table } = useDataTable({
     data: filteredData,
     columns,
@@ -339,8 +355,8 @@ export function UsersTable() {
   if (isLoading) {
     return (
       <div className="data-table-container">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-muted-foreground">Loading users...</div>
+        <div className="flex h-64 items-center justify-center">
+          <div className="text-muted-foreground">Cargando usuarios...</div>
         </div>
       </div>
     );
@@ -349,13 +365,15 @@ export function UsersTable() {
   if (error) {
     return (
       <div className="data-table-container">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-destructive">Error loading users: {error.message}</div>
+        <div className="flex h-64 items-center justify-center">
+          <div className="text-destructive">
+            Error cargando usuarios: {error.message}
+          </div>
         </div>
       </div>
     );
   }
- 
+
   return (
     <div className="data-table-container">
       <DataTable table={table}>

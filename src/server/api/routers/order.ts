@@ -1,81 +1,103 @@
 import { z } from "zod";
-import { createTRPCRouter, protectedProcedure } from "../trpc";
-import { TRPCError } from "@trpc/server";
+import {
+  createTRPCRouter,
+  adminProcedure,
+  protectedProcedure,
+} from "@/server/api/trpc";
+import { OrderStatus } from "@prisma/client";
 
 export const orderRouter = createTRPCRouter({
   createNew: protectedProcedure
     .input(
       z.object({
-        address: z.coerce.string().min(6),
-        phone: z.coerce.string().min(6),
+        menuItemIds: z.array(z.string()),
+        address: z.string(),
+        phone: z.string(),
         paymentMethod: z.enum(["credit-card", "cash"]),
-        menuItemIds: z.array(z.coerce.string()).min(1),
       }),
     )
     .mutation(async ({ ctx, input }) => {
       const menuItems = await ctx.db.menuItem.findMany({
-        where: {
-          id: { in: input.menuItemIds },
-        },
-        select: {
-          id: true,
-          available: true,
-          price: true,
+        where: { id: { in: input.menuItemIds } },
+      });
+
+      const total = menuItems.reduce((sum, item) => sum + item.price, 0);
+
+      const order = await ctx.db.order.create({
+        data: {
+          userId: ctx.session.user.id,
+          address: input.address,
+          phone: input.phone,
+          total: total * 1.1,
+          orderItems: {
+            create: input.menuItemIds.map((id) => ({
+              menuItemId: id,
+              quantity: 1,
+              subtotal: menuItems.find((item) => item.id === id)?.price ?? 0,
+            })),
+          },
+          payment: {
+            create: {
+              method: input.paymentMethod,
+              status: "PENDING",
+              amount: total * 1.1,
+            },
+          },
         },
       });
 
-      for (const item of menuItems) {
-        if (!input.menuItemIds.some((iid) => iid === item.id)) {
-          return new TRPCError({
-            code: "NOT_FOUND",
-            message: `Item with id ${item.id} not found.`,
-          });
-        }
-      }
+      return order;
+    }),
 
-      for (const item of menuItems) {
-        if (!item.available) {
-          return new TRPCError({
-            code: "CONFLICT",
-            message: `Item with id ${item.id} id not available.`,
-          });
-        }
-      }
-
-      let total = 0;
-      const orderItems = menuItems.reduce(
-        (oItems, i) => {
-          total += i.price;
-          oItems[i.id] ??= { quantity: 0, subtotal: 0 };
-          oItems[i.id]!.quantity += 1;
-          oItems[i.id]!.subtotal += i.price;
-
-          return oItems;
+  getOrders: adminProcedure.query(async ({ ctx }) => {
+    return await ctx.db.order.findMany({
+      include: {
+        user: {
+          select: {
+            name: true,
+            email: true,
+          },
         },
-        {} as Record<string, { quantity: number; subtotal: number }>,
-      );
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+  }),
 
-      return await ctx.db.order.create({
-        data: {
-          address: input.address,
-          phone: input.phone,
-          payment: {
-            create: {
-              amount: total,
-              method: input.paymentMethod.toUpperCase(),
-              status: "noc",
+  getOrderDetails: adminProcedure
+    .input(z.string())
+    .query(async ({ ctx, input: orderId }) => {
+      return await ctx.db.order.findUnique({
+        where: { id: orderId },
+        include: {
+          user: {
+            select: {
+              name: true,
+              email: true,
             },
           },
-          total,
-          userId: ctx.session.user.id,
           orderItems: {
-            createMany: {
-              data: Object.entries(orderItems).map(([k, v]) => {
-                return { ...v, menuItemId: k };
-              }),
+            include: {
+              menuItem: true,
             },
           },
+          payment: true,
         },
+      });
+    }),
+
+  updateOrderStatus: adminProcedure
+    .input(
+      z.object({
+        orderId: z.string(),
+        status: z.nativeEnum(OrderStatus),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      return await ctx.db.order.update({
+        where: { id: input.orderId },
+        data: { status: input.status },
       });
     }),
 });
