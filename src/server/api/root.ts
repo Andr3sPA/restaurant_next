@@ -2,6 +2,7 @@ import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
 import { userRouter } from "@/server/api/routers/user";
 import { menuRouter } from "@/server/api/routers/menu";
 import { orderRouter } from "@/server/api/routers/order";
+import type { inferRouterOutputs } from "@trpc/server";
 /**
  * This is the primary router for your server.
  *
@@ -24,3 +25,5 @@ export type AppRouter = typeof appRouter;
  *       ^? Post[]
  */
 export const createCaller = createCallerFactory(appRouter);
+
+export type RouterOutputs = inferRouterOutputs<AppRouter>;

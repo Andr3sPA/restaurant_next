@@ -73,6 +73,7 @@ const NavbarClient = ({
     { title: "Pedidos", url: "/orders" },
     { title: "Usuarios", url: "/users" },
     { title: "Inventario", url: "/menu/inventory" },
+    { title: "Métricas", url: "/metrics" },
   ];
 
   const getMenuByRole = () => {

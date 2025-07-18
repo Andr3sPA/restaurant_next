@@ -58,6 +58,11 @@ export const orderRouter = createTRPCRouter({
             email: true,
           },
         },
+        orderItems: {
+          include: {
+            menuItem: true,
+          },
+        },
       },
       orderBy: {
         createdAt: "desc",
