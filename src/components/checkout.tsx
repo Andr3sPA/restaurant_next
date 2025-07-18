@@ -1,12 +1,12 @@
 "use client";
 
+// Componente de checkout que maneja la finalización de compras con formulario de datos del cliente, métodos de pago y simulación de campos de tarjeta de crédito
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
-  ArrowLeft,
   CheckCheckIcon,
   CreditCard,
   Loader2Icon,
@@ -37,7 +37,6 @@ const schema = z.object({
   paymentMethod: z.enum(["credit-card", "cash"]),
 });
 
-// Componente de checkout que maneja la finalización de compras con formulario de datos del cliente, métodos de pago y simulación de campos de tarjeta de crédito
 export function Checkout() {
   const { items: cartItems, getTotalPrice, clearCart } = useCart();
   const [subtotal, setSubtotal] = useState(0);
@@ -54,13 +53,11 @@ export function Checkout() {
 
   const paymentMethod = form.watch("paymentMethod");
 
+  // Formatea la fecha de vencimiento de la tarjeta de crédito
   const handleExpiryDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-
-    // Remove all non-digits
     const digitsOnly = value.replace(/\D/g, "");
 
-    // Format with slash
     if (digitsOnly.length === 0) {
       setExpiryDate("");
     } else if (digitsOnly.length <= 2) {
@@ -70,21 +67,18 @@ export function Checkout() {
     }
   };
 
+  // Permite borrar el slash en la fecha de vencimiento con backspace
   const handleExpiryDateKeyDown = (
     e: React.KeyboardEvent<HTMLInputElement>,
   ) => {
-    // Handle backspace to remove the slash and previous character together
-    if (e.key === "Backspace") {
-      const currentValue = expiryDate;
-      const cursorPosition = (e.target as HTMLInputElement).selectionStart ?? 0;
+    const currentValue = expiryDate;
+    const cursorPosition = (e.target as HTMLInputElement).selectionStart ?? 0;
 
-      // If we're deleting the character right after the slash
+    if (e.key === "Backspace") {
       if (cursorPosition === 4 && currentValue.length === 5) {
         e.preventDefault();
         setExpiryDate(currentValue.slice(0, 2));
-      }
-      // If we're deleting the slash itself
-      else if (cursorPosition === 3 && currentValue[2] === "/") {
+      } else if (cursorPosition === 3 && currentValue[2] === "/") {
         e.preventDefault();
         setExpiryDate(currentValue.slice(0, 1));
       }
@@ -92,13 +86,15 @@ export function Checkout() {
   };
 
   useEffect(() => {
+    // Calcula el subtotal y el total (con 10% de impuesto)
     const calculatedSubtotal = getTotalPrice();
-    const calculatedTotal = calculatedSubtotal + calculatedSubtotal * 0.1; // Adding 10% tax
+    const calculatedTotal = calculatedSubtotal + calculatedSubtotal * 0.1;
     setSubtotal(calculatedSubtotal);
     setTotal(calculatedTotal);
   }, [cartItems, getTotalPrice]);
   const router = useRouter();
 
+  // Mutación para crear una nueva orden
   const { mutate, isPending, isSuccess } = api.order.createNew.useMutation({
     onSuccess: () => {
       clearCart(); // Limpiar el carrito después de crear la orden exitosamente
@@ -141,6 +137,7 @@ export function Checkout() {
                     )}
                     className="grid grid-cols-2 gap-6"
                   >
+                    {/* Campo de dirección */}
                     <FormField
                       control={form.control}
                       name="address"
@@ -158,6 +155,7 @@ export function Checkout() {
                         </FormItem>
                       )}
                     />
+                    {/* Campo de teléfono */}
                     <FormField
                       control={form.control}
                       name="phone"
@@ -171,6 +169,7 @@ export function Checkout() {
                         </FormItem>
                       )}
                     />
+                    {/* Selección de método de pago */}
                     <FormField
                       control={form.control}
                       name="paymentMethod"
@@ -221,6 +220,7 @@ export function Checkout() {
                         )}
                       </Button>
                     </div>
+                    {/* Campos de tarjeta de crédito si corresponde */}
                     {paymentMethod === "credit-card" && (
                       <div className="col-span-2 mt-4 rounded-lg border bg-gray-50 p-4">
                         <h3 className="mb-4 text-lg font-semibold">
@@ -275,6 +275,7 @@ export function Checkout() {
               </div>
               <Separator />
               <div className="space-y-2">
+                {/* Lista de productos en el carrito */}
                 {cartItems.map((item, index) => (
                   <div key={index} className="flex items-center gap-2">
                     <Package className="h-5 w-5 text-gray-500" />

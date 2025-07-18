@@ -1,5 +1,4 @@
 "use client";
-import { DataTable } from "@/components/data-table/data-table";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DollarSign } from "lucide-react";
@@ -7,7 +6,7 @@ import { parseAsArrayOf, parseAsString, useQueryState } from "nuqs";
 import * as React from "react";
 import { useDataTable } from "@/hooks/use-data-table";
 import { api } from "@/trpc/react";
-import type { Column, ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef } from "@tanstack/react-table";
 import TableErrorState from "@/components/TableErrorState";
 import TableLoadingState from "@/components/TableLoadingState";
 import TableWrapper from "@/components/TableWrapper";
@@ -15,6 +14,7 @@ import OrderDetailsDialog from "./OrderDetailsDialog";
 import OrderStatusBadge from "./OrderStatusBadge";
 import OrderUserCell from "./OrderUserCell";
 import type { OrderStatus } from "@prisma/client";
+import { toast } from "sonner";
 
 interface Order {
   id: string;
@@ -59,10 +59,11 @@ export function OrdersTable() {
       return { previousOrders };
     },
     onSuccess: () => {
-      // ...existing code...
+      toast.success("Estado del pedido actualizado correctamente.");
+      void utils.order.getOrders.invalidate();
     },
-    onError: (err, newOrder, context) => {
-      // ...existing code...
+    onError: () => {
+      toast.error("Error al actualizar el estado del pedido.");
     },
     onSettled: () => {
       void utils.order.getOrders.invalidate();

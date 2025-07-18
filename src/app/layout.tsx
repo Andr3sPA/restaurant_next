@@ -1,3 +1,4 @@
+// Layout principal de la aplicación. Configura los proveedores globales y la estructura base.
 import "@/styles/globals.css";
 
 import { type Metadata } from "next";
@@ -7,7 +8,6 @@ import { TRPCReactProvider } from "@/trpc/react";
 import { Toaster } from "@/components/ui/sonner";
 import { Suspense } from "react";
 import { Loader } from "lucide-react";
-import { NavbarClient } from "@/components/navbar-client";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { CartProvider } from "@/contexts/CartContext";
 import { SessionProvider } from "next-auth/react";
@@ -27,9 +27,11 @@ const geist = Geist({
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  // Renderiza el layout principal con todos los proveedores y la estructura base
   return (
     <html suppressHydrationWarning lang="en" className={`${geist.variable}`}>
       <head>
+        {/* Script para manejar el modo oscuro desde localStorage */}
         <script
           dangerouslySetInnerHTML={{
             __html: `(() => {
@@ -51,6 +53,7 @@ export default function RootLayout({
                   fallback=<Loader className="absolute top-1/2 left-1/2 -translate-1/2 scale-150 animate-spin" />
                 >
                   {children}
+                  {/* Carrito de compras flotante */}
                   <div className="fixed right-8 bottom-8 z-40">
                     <ShoppingCart />
                   </div>
@@ -59,6 +62,7 @@ export default function RootLayout({
             </CartProvider>
           </SessionProvider>
         </TRPCReactProvider>
+        {/* Toaster para notificaciones globales */}
         <Toaster />
       </body>
     </html>

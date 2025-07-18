@@ -1,5 +1,6 @@
 "use client";
 
+// Componente que muestra los detalles de un elemento del menú, incluyendo imagen, precio, stock y acciones.
 import ImageViewer from "@/components/menu-item/image-viewer-basic";
 import PriceFormat from "@/components/menu-item/price-format-basic";
 import StarRatingFractions from "@/components/menu-item/star-rating-fractions";
@@ -45,9 +46,10 @@ function MenuItemDetails({
   const { addItem } = useCart();
   const router = useRouter();
 
+  // Agrega el producto al carrito
   const handleAddToCart = () => {
     if (!price || !prefix || !title) {
-      console.error("Missing required item data");
+      // Si faltan datos requeridos, no se agrega
       return;
     }
 
@@ -63,9 +65,9 @@ function MenuItemDetails({
     addItem(itemToAdd);
   };
 
+  // Agrega el producto al carrito y redirige a checkout
   const handleOrderNow = () => {
     if (!price || !prefix || !title) {
-      console.error("Missing required item data");
       return;
     }
 
@@ -81,6 +83,7 @@ function MenuItemDetails({
     addItem(itemToAdd);
     router.push("/checkout");
   };
+
   return (
     <MotionDiv>
       <Card>
@@ -111,17 +114,17 @@ function MenuItemDetails({
               {inStock ? (
                 <div className="flex flex-row items-center gap-2">
                   <div className="w-fit rounded-lg border border-green-500 bg-green-500/30 px-2 py-1 text-sm font-semibold text-green-500 uppercase dark:border-green-300 dark:text-green-300">
-                    In Stock
+                    En stock
                   </div>
                   {stockCount && (
                     <p className="text-muted-foreground">
-                      +{stockCount} in stocks
+                      +{stockCount} disponibles
                     </p>
                   )}
                 </div>
               ) : (
                 <div className="w-fit rounded-lg border border-red-500 bg-red-500/30 px-2 py-1 text-sm font-semibold text-red-500 uppercase dark:border-red-300 dark:text-red-300">
-                  Out of Stock
+                  Sin stock
                 </div>
               )}
 
@@ -133,7 +136,7 @@ function MenuItemDetails({
                   >
                     {shippingText}
                   </a>{" "}
-                  on all orders
+                  en todos los pedidos
                 </p>
               )}
             </div>
@@ -152,15 +155,15 @@ function MenuItemDetails({
                 onClick={handleAddToCart}
                 disabled={!inStock}
               >
-                Add to cart
+                Agregar al carrito
               </Button>
-              <Button 
-                size="lg" 
+              <Button
+                size="lg"
                 className="w-full md:w-fit"
                 onClick={handleOrderNow}
                 disabled={!inStock}
               >
-                Order now
+                Ordenar ahora
               </Button>
             </div>
           </div>

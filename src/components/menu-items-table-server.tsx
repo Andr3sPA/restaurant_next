@@ -1,5 +1,5 @@
 import { api, HydrateClient } from "@/trpc/server";
-import { MenuItemsTable } from "./inventoryTable";
+import { MenuItemsTable } from "@/components/InventoryTable/MenuItemsTable";
 
 export default async function MenuItemsTableServer() {
   // Prefetch the menu items data on the server
