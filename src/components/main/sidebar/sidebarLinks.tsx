@@ -3,7 +3,7 @@ import { Archive, TableProperties, UserRoundCog } from "lucide-react";
 import { auth } from "@/server/auth";
 
 const SharedLinks = [
-  { text: "Transacciones", link: "/transactions/", icon: TableProperties },
+  { text: "Ordenes", link: "/orders/", icon: TableProperties },
 ];
 
 const AdminLinks = [

@@ -255,32 +255,30 @@ export function OrdersTable() {
     error,
   } = api.order.getOrders.useQuery();
 
-  const { mutate: updateOrderStatus } = api.order.updateOrderStatus.useMutation(
-    {
-      onMutate: async (newOrder) => {
-        await utils.order.getOrders.cancel();
-        const previousOrders = utils.order.getOrders.getData();
-        utils.order.getOrders.setData(undefined, (old) =>
-          old?.map((order) =>
-            order.id === newOrder.orderId
-              ? { ...order, status: newOrder.status }
-              : order,
-          ),
-        );
-        return { previousOrders };
-      },
-      onSuccess: () => {
-        toast.success("Estado del pedido actualizado.");
-      },
-      onError: (err, newOrder, context) => {
-        utils.order.getOrders.setData(undefined, context?.previousOrders);
-        toast.error("Error al actualizar el estado del pedido.");
-      },
-      onSettled: () => {
-        void utils.order.getOrders.invalidate();
-      },
+  api.order.updateOrderStatus.useMutation({
+    onMutate: async (newOrder) => {
+      await utils.order.getOrders.cancel();
+      const previousOrders = utils.order.getOrders.getData();
+      utils.order.getOrders.setData(undefined, (old) =>
+        old?.map((order) =>
+          order.id === newOrder.orderId
+            ? { ...order, status: newOrder.status }
+            : order,
+        ),
+      );
+      return { previousOrders };
     },
-  );
+    onSuccess: () => {
+      toast.success("Estado del pedido actualizado.");
+    },
+    onError: (err, newOrder, context) => {
+      utils.order.getOrders.setData(undefined, context?.previousOrders);
+      toast.error("Error al actualizar el estado del pedido.");
+    },
+    onSettled: () => {
+      void utils.order.getOrders.invalidate();
+    },
+  });
 
   const filteredData = React.useMemo(() => {
     return orders.filter((order) => {

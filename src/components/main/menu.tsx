@@ -28,7 +28,7 @@ export default function Menu() {
   if (error) return <div>Error: {error.message}</div>;
 
   return (
-    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    <div className="grid grid-cols-1 gap-6 pb-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {menuItems.map((item) => (
         <Card key={item.id} className="w-full max-w-sm gap-2">
           <CardHeader className="flex flex-col items-center">
