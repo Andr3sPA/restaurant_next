@@ -61,13 +61,19 @@ export function OrdersCharts({
   const lineData = React.useMemo(() => {
     const dailyTotals: Record<string, number> = {};
     filteredOrders.forEach((order) => {
-      const date = new Date(order.createdAt).toLocaleDateString();
-      dailyTotals[date] = (dailyTotals[date] ?? 0) + order.total;
+      if (order.status === "DELIVERED") {
+        const date = new Date(order.createdAt).toLocaleDateString();
+        dailyTotals[date] = (dailyTotals[date] ?? 0) + order.total;
+      }
     });
-    return Object.entries(dailyTotals).map(([date, total]) => ({
-      date,
-      total,
-    }));
+    const sortedData = Object.entries(dailyTotals)
+      .sort((a, b) => new Date(a[0]).getTime() - new Date(b[0]).getTime())
+      .map(([date, total]) => ({
+        date,
+        total,
+      }));
+
+    return sortedData;
   }, [filteredOrders]);
 
   const topProductsData = React.useMemo(() => {
@@ -93,16 +99,21 @@ export function OrdersCharts({
     const dailyOrders: Record<string, { total: number; count: number }> = {};
 
     filteredOrders.forEach((order) => {
-      const date = new Date(order.createdAt).toLocaleDateString();
-      dailyOrders[date] ??= { total: 0, count: 0 };
-      dailyOrders[date].total += order.total;
-      dailyOrders[date].count += 1;
+      if (order.status === "DELIVERED") {
+        const date = new Date(order.createdAt).toLocaleDateString();
+        dailyOrders[date] ??= { total: 0, count: 0 };
+        dailyOrders[date].total += order.total;
+        dailyOrders[date].count += 1;
+      }
     });
+    const sortedData = Object.entries(dailyOrders)
+      .sort((a, b) => new Date(a[0]).getTime() - new Date(b[0]).getTime())
+      .map(([date, { total, count }]) => ({
+        date,
+        average: count > 0 ? total / count : 0,
+      }));
 
-    return Object.entries(dailyOrders).map(([date, { total, count }]) => ({
-      date,
-      average: count > 0 ? total / count : 0,
-    }));
+    return sortedData;
   }, [filteredOrders]);
 
   const statusColorMap: Record<OrderStatus, string> = {
