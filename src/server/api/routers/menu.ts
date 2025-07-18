@@ -96,6 +96,82 @@ export const menuRouter = createTRPCRouter({
         });
       }
     }),
+  toggleAvailability: adminProcedure
+    .input(z.object({ id: z.string(), available: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      return await ctx.db.menuItem.update({
+        where: { id: input.id },
+        data: { available: input.available },
+      });
+    }),
+  updateMenuItem: adminProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        name: z.string().min(1, { message: "El nombre es requerido" }),
+        description: z.string().optional(),
+        currency: z.string().min(1, { message: "La moneda es requerida" }),
+        price: z
+          .number()
+          .min(0.01, { message: "El precio debe ser mayor a 0" }),
+        image: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { id, image, ...updateData } = input;
+
+      let imageUrl = undefined;
+
+      if (image?.startsWith("data:")) {
+        // Si se proporciona una nueva imagen, subirla a Cloudinary
+        const uploadResult = await cloudinary.uploader.upload(image, {
+          folder: "menu-items",
+          resource_type: "image",
+        });
+        imageUrl = uploadResult.secure_url;
+      }
+
+      return await ctx.db.menuItem.update({
+        where: { id },
+        data: {
+          ...updateData,
+          ...(imageUrl && { image: imageUrl }),
+        },
+      });
+    }),
+  deleteMenuItem: adminProcedure
+    .input(z.string())
+    .mutation(async ({ ctx, input: id }) => {
+      const menuItem = await ctx.db.menuItem.findUnique({ where: { id } });
+
+      if (menuItem?.image) {
+        try {
+          const urlParts = menuItem.image.split("/upload/");
+          if (urlParts.length === 2) {
+            const publicIdWithFolderAndVersion = urlParts[1];
+            if (publicIdWithFolderAndVersion) {
+              const publicIdWithFolder = publicIdWithFolderAndVersion
+                .split("/")
+                .slice(1)
+                .join("/")
+                .split(".")[0];
+
+              if (publicIdWithFolder) {
+                await cloudinary.uploader.destroy(
+                  `menu-items/${publicIdWithFolder}`,
+                );
+              }
+            }
+          }
+        } catch (error) {
+          console.error("Failed to delete image from Cloudinary:", error);
+        }
+      }
+
+      return await ctx.db.menuItem.delete({
+        where: { id },
+      });
+    }),
   getMenuItems: adminProcedure.query(async ({ ctx }) => {
     return await ctx.db.menuItem.findMany({
       orderBy: {

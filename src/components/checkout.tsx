@@ -29,6 +29,7 @@ import {
 } from "./ui/form";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/contexts/CartContext";
+import ReturnButton from "@/components/ReturnButton";
 
 const schema = z.object({
   address: z.coerce.string().min(6),
@@ -109,13 +110,7 @@ export function Checkout() {
       <main className="container mx-auto grid flex-1 grid-cols-1 gap-8 px-6 py-12 md:grid-cols-3">
         <div className="col-span-2">
           <div className="mb-6 flex items-center gap-4">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => router.push("/")}
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
+            <ReturnButton onClick={() => router.push("/")} />
             <h1 className="text-3xl font-bold">Finalizar Compra</h1>
           </div>
           <Card className="p-0">

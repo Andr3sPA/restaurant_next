@@ -1,20 +1,20 @@
-import { UsersTable } from "@/components/usersTable";
+import { OrdersTable } from "@/components/OrdersTable/OrdersTable";
 import ReturnButton from "@/components/ReturnButton";
-import TableTitle from "@/components/TableTitle";
 import TableDescription from "@/components/TableDescription";
+import TableTitle from "@/components/TableTitle";
 
-export default function UsersPage() {
+export default function InventoryPage() {
   return (
     <div className="container mx-auto py-6">
       <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-4">
             <ReturnButton />
-            <TableTitle title="Gestión de Usuarios" />
+            <TableTitle title="Inventario de Menú" />
           </div>
-          <TableDescription description="Maneja las cuentas de los usuarios y sus roles dentro del sistema." />
+          <TableDescription description="Gestiona los elementos del menú, incluyendo precios, disponibilidad e imágenes." />
         </div>
-        <UsersTable />
+        <OrdersTable />
       </div>
     </div>
   );

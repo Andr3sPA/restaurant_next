@@ -2,7 +2,6 @@
 
 import { DataTable } from "@/components/data-table/data-table";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
-import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,7 +13,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
-
 import { useDataTable } from "@/hooks/use-data-table";
 import { api } from "@/trpc/react";
 
@@ -26,71 +24,54 @@ import {
   MoreHorizontal,
   Text,
   XCircle,
-  Image as ImageIcon,
 } from "lucide-react";
 import { parseAsArrayOf, parseAsString, useQueryState } from "nuqs";
 import * as React from "react";
-import Image from "next/image";
 
-// Componente separado para manejar el estado de la imagen
-function MenuItemImage({ imageUrl }: { imageUrl: string | null }) {
-  const [imageError, setImageError] = React.useState(false);
+import TableLoadingState from "@/components/TableLoadingState";
+import TableErrorState from "@/components/TableErrorState";
+import TableWrapper from "@/components/TableWrapper";
+import MenuItemImage from "./MenuItemImage";
+import EditMenuItemDialog from "./EditMenuItemDialog";
+import DeleteMenuItemDialog from "./DeleteMenuItemDialog";
+import type { MenuItem } from "@prisma/client";
+import { toast } from "sonner";
 
-  // Función para optimizar URLs de Cloudinary
-  const optimizeCloudinaryUrl = (url: string) => {
-    if (url.includes("cloudinary.com")) {
-      // Si la URL ya tiene transformaciones, la usamos tal como está
-      if (url.includes("/c_")) return url;
-
-      // Si no tiene transformaciones, agregamos algunas optimizaciones básicas
-      const parts = url.split("/upload/");
-      if (parts.length === 2) {
-        return `${parts[0]}/upload/c_fill,w_48,h_48,q_auto,f_auto/${parts[1]}`;
-      }
-    }
-    return url;
-  };
-
-  return (
-    <div className="flex h-12 w-12 items-center justify-center">
-      {imageUrl && !imageError ? (
-        <Image
-          src={optimizeCloudinaryUrl(imageUrl)}
-          alt="Menu item"
-          width={48}
-          height={48}
-          className="rounded-md object-cover"
-          onError={() => setImageError(true)}
-          priority={false}
-          unoptimized={false} // Permitir optimización de Next.js para Cloudinary
-        />
-      ) : (
-        <div className="flex h-12 w-12 items-center justify-center rounded-md bg-gray-200">
-          <ImageIcon className="h-6 w-6 text-gray-400" />
-        </div>
-      )}
-    </div>
-  );
-}
-
-interface MenuItem {
-  id: string;
-  name: string;
-  description: string | null;
-  currency: string;
-  price: number;
-  available: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-  image: string | null;
-}
-
+// Componente principal para la tabla de elementos del menú
 export function MenuItemsTable() {
   const [name] = useQueryState("name", parseAsString.withDefault(""));
   const [available] = useQueryState(
     "available",
     parseAsArrayOf(parseAsString).withDefault([]),
   );
+
+  const utils = api.useUtils();
+
+  const { mutate: toggleAvailability } =
+    api.menu.toggleAvailability.useMutation({
+      onMutate: async (newItem) => {
+        await utils.menu.getMenuItems.cancel();
+        const previousMenuItems = utils.menu.getMenuItems.getData();
+        utils.menu.getMenuItems.setData(undefined, (old) =>
+          old?.map((item) =>
+            item.id === newItem.id
+              ? { ...item, available: newItem.available }
+              : item,
+          ),
+        );
+        return { previousMenuItems };
+      },
+      onSuccess: () => {
+        toast.success("Estado actualizado exitosamente");
+      },
+      onError: (err, newItem, context) => {
+        utils.menu.getMenuItems.setData(undefined, context?.previousMenuItems);
+        toast.error("Error al actualizar el estado");
+      },
+      onSettled: () => {
+        void utils.menu.getMenuItems.invalidate();
+      },
+    });
 
   // Fetch menu items using tRPC
   const {
@@ -155,7 +136,7 @@ export function MenuItemsTable() {
       {
         id: "image",
         accessorKey: "image",
-        header: "Image",
+        header: "Imagen",
         cell: ({ cell }) => {
           const imageUrl = cell.getValue<MenuItem["image"]>();
           return <MenuItemImage imageUrl={imageUrl} />;
@@ -167,14 +148,14 @@ export function MenuItemsTable() {
         id: "name",
         accessorKey: "name",
         header: ({ column }: { column: Column<MenuItem, unknown> }) => (
-          <DataTableColumnHeader column={column} title="Name" />
+          <DataTableColumnHeader column={column} title="Nombre" />
         ),
         cell: ({ cell }) => (
           <div className="font-medium">{cell.getValue<MenuItem["name"]>()}</div>
         ),
         meta: {
-          label: "Name",
-          placeholder: "Search names...",
+          label: "Nombre",
+          placeholder: "Buscar nombres...",
           variant: "text",
           icon: Text,
         },
@@ -184,7 +165,7 @@ export function MenuItemsTable() {
         id: "description",
         accessorKey: "description",
         header: ({ column }: { column: Column<MenuItem, unknown> }) => (
-          <DataTableColumnHeader column={column} title="Description" />
+          <DataTableColumnHeader column={column} title="Descripción" />
         ),
         cell: ({ cell }) => {
           const description = cell.getValue<MenuItem["description"]>();
@@ -192,7 +173,7 @@ export function MenuItemsTable() {
           if (!description || description.trim() === "") {
             return (
               <div className="text-muted-foreground text-sm italic">
-                No description
+                Sin descripción
               </div>
             );
           }
@@ -217,7 +198,7 @@ export function MenuItemsTable() {
         id: "available",
         accessorKey: "available",
         header: ({ column }: { column: Column<MenuItem, unknown> }) => (
-          <DataTableColumnHeader column={column} title="Status" />
+          <DataTableColumnHeader column={column} title="Estado" />
         ),
         cell: ({ cell }) => {
           const available = cell.getValue<MenuItem["available"]>();
@@ -229,16 +210,16 @@ export function MenuItemsTable() {
               className="capitalize"
             >
               <Icon className="mr-1 h-3 w-3" />
-              {available ? "Available" : "Unavailable"}
+              {available ? "Disponible" : "No disponible"}
             </Badge>
           );
         },
         meta: {
-          label: "Status",
+          label: "Estado",
           variant: "multiSelect",
           options: [
-            { label: "Available", value: "available", icon: CheckCircle },
-            { label: "Unavailable", value: "unavailable", icon: XCircle },
+            { label: "Disponible", value: "available", icon: CheckCircle },
+            { label: "No disponible", value: "unavailable", icon: XCircle },
           ],
         },
         enableColumnFilter: true,
@@ -247,7 +228,7 @@ export function MenuItemsTable() {
         id: "price",
         accessorKey: "price",
         header: ({ column }: { column: Column<MenuItem, unknown> }) => (
-          <DataTableColumnHeader column={column} title="Price" />
+          <DataTableColumnHeader column={column} title="Precio" />
         ),
         cell: ({ cell, row }) => {
           const price = cell.getValue<MenuItem["price"]>();
@@ -265,7 +246,7 @@ export function MenuItemsTable() {
         id: "createdAt",
         accessorKey: "createdAt",
         header: ({ column }: { column: Column<MenuItem, unknown> }) => (
-          <DataTableColumnHeader column={column} title="Created" />
+          <DataTableColumnHeader column={column} title="Creado" />
         ),
         cell: ({ cell }) => {
           const date = cell.getValue<MenuItem["createdAt"]>();
@@ -286,19 +267,24 @@ export function MenuItemsTable() {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon">
                   <MoreHorizontal className="h-4 w-4" />
-                  <span className="sr-only">Open menu</span>
+                  <span className="sr-only">Abrir menú</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem>Edit</DropdownMenuItem>
-                <DropdownMenuItem>
+                <EditMenuItemDialog menuItem={menuItem} />
+                <DropdownMenuItem
+                  onClick={() => {
+                    toggleAvailability({
+                      id: menuItem.id,
+                      available: !menuItem.available,
+                    });
+                  }}
+                >
                   {menuItem.available
-                    ? "Mark as Unavailable"
-                    : "Mark as Available"}
+                    ? "Marcar como No disponible"
+                    : "Marcar como Disponible"}
                 </DropdownMenuItem>
-                <DropdownMenuItem variant="destructive">
-                  Delete
-                </DropdownMenuItem>
+                <DeleteMenuItemDialog menuItem={menuItem} />
               </DropdownMenuContent>
             </DropdownMenu>
           );
@@ -306,7 +292,7 @@ export function MenuItemsTable() {
         size: 32,
       },
     ],
-    [],
+    [toggleAvailability],
   );
 
   const { table } = useDataTable({
@@ -321,32 +307,16 @@ export function MenuItemsTable() {
   });
 
   if (isLoading) {
-    return (
-      <div className="data-table-container">
-        <div className="flex h-64 items-center justify-center">
-          <div className="text-muted-foreground">Loading menu items...</div>
-        </div>
-      </div>
-    );
+    return <TableLoadingState message="Cargando elementos del menú..." />;
   }
 
   if (error) {
     return (
-      <div className="data-table-container">
-        <div className="flex h-64 items-center justify-center">
-          <div className="text-destructive">
-            Error loading menu items: {error.message}
-          </div>
-        </div>
-      </div>
+      <TableErrorState
+        message={`Error cargando elementos del menú: ${error.message}`}
+      />
     );
   }
 
-  return (
-    <div className="data-table-container">
-      <DataTable table={table}>
-        <DataTableToolbar table={table} />
-      </DataTable>
-    </div>
-  );
+  return <TableWrapper table={table} />;
 }
