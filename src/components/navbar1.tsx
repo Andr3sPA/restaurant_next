@@ -57,14 +57,14 @@ const Navbar1 = async ({
   menu,
 }: Navbar1Props) => {
   const session = await getAuth();
-  
+
   // Definir menús según el rol del usuario
   const clientMenu = [
     { title: "Home", url: "/" },
     { title: "Menu", url: "/menu" },
     { title: "Historial", url: "/reservations" },
   ];
-  
+
   const employeeMenu = [
     { title: "Home", url: "/" },
     { title: "Menu", url: "/menu" },
@@ -73,7 +73,7 @@ const Navbar1 = async ({
     { title: "Inventario", url: "/menu/inventory" },
     { title: "Añadir plato", url: "/menu/register" },
   ];
-  
+
   const adminMenu = [
     { title: "Home", url: "/" },
     { title: "Menu", url: "/menu" },
@@ -83,7 +83,7 @@ const Navbar1 = async ({
     { title: "Inventario", url: "/menu/inventory" },
     { title: "Añadir plato", url: "/menu/register" },
   ];
-  
+
   // Seleccionar el menú apropiado según el rol
   const getMenuByRole = () => {
     if (!session?.user?.role) {
@@ -93,7 +93,7 @@ const Navbar1 = async ({
         { title: "Menu", url: "/menu" },
       ];
     }
-    
+
     switch (session.user.role) {
       case Role.CLIENT:
         return clientMenu;
@@ -105,117 +105,117 @@ const Navbar1 = async ({
         return adminMenu;
     }
   };
-  
+
   const selectedMenu = menu ?? getMenuByRole();
 
   return (
     <HydrateClient>
-    <section className="py-4">
-      <div className="container">
-        {/* Desktop Menu */}
-        <nav className="hidden justify-between lg:flex">
-          <div className="flex items-center gap-6 pl-4">
-            {/* Logo */}
-            <a href={logo.url} className="flex items-center gap-2">
-              <Image
-                src={logo.src}
-                className="max-h-8"
-                alt={logo.alt}
-                width={32}
-                height={32}
-              />
-              <span className="text-lg font-semibold tracking-tighter">
-                {logo.title}
-              </span>
-            </a>
-            <div className="flex items-center">
-              <NavigationMenu>
-                <NavigationMenuList>
-                  {selectedMenu.map((item) => renderMenuItem(item))}
-                </NavigationMenuList>
-              </NavigationMenu>
+      <section className="py-4">
+        <div className="container">
+          {/* Desktop Menu */}
+          <nav className="hidden justify-between lg:flex">
+            <div className="flex items-center gap-6 pl-4">
+              {/* Logo */}
+              <a href={logo.url} className="flex items-center gap-2">
+                <Image
+                  src={logo.src}
+                  className="max-h-8"
+                  alt={logo.alt}
+                  width={32}
+                  height={32}
+                />
+                <span className="text-lg font-semibold tracking-tighter">
+                  {logo.title}
+                </span>
+              </a>
+              <div className="flex items-center">
+                <NavigationMenu>
+                  <NavigationMenuList>
+                    {selectedMenu.map((item) => renderMenuItem(item))}
+                  </NavigationMenuList>
+                </NavigationMenu>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <ShoppinCart />
+              <DarkModeSwitch />
+              <Button asChild variant="outline" size="sm">
+                <Link href={session ? "/api/auth/signout" : "/user/signin"}>
+                  {session ? "Sign out" : "Sign in"}
+                </Link>
+              </Button>
+              {!session && (
+                <Button asChild size="sm">
+                  <Link href="/user/signup">Sign up</Link>
+                </Button>
+              )}
+            </div>
+          </nav>
+
+          {/* Mobile Menu */}
+          <div className="block lg:hidden">
+            <div className="flex items-center justify-between pr-4 pl-4">
+              {/* Logo */}
+              <a href={logo.url} className="flex items-center gap-2">
+                <Image
+                  src={logo.src}
+                  className="max-h-8"
+                  alt={logo.alt}
+                  width={32}
+                  height={32}
+                />
+              </a>
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="outline" size="icon">
+                    <Menu className="size-4" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent className="overflow-y-auto">
+                  <SheetHeader>
+                    <SheetTitle>
+                      <a href={logo.url} className="flex items-center gap-2">
+                        <Image
+                          src={logo.src}
+                          className="max-h-8"
+                          alt={logo.alt}
+                          width={32}
+                          height={32}
+                        />
+                      </a>
+                    </SheetTitle>
+                  </SheetHeader>
+                  <div className="flex flex-col gap-6 p-4">
+                    <Accordion
+                      type="single"
+                      collapsible
+                      className="flex w-full flex-col gap-4"
+                    >
+                      {selectedMenu.map((item) => renderMobileMenuItem(item))}
+                    </Accordion>
+
+                    <div className="flex flex-col gap-3">
+                      <Button asChild variant="outline">
+                        <Link
+                          href={session ? "/api/auth/signout" : "/user/signin"}
+                        >
+                          {session ? "Sign out" : "Sign in"}
+                        </Link>
+                      </Button>
+                      {!session && (
+                        <Button asChild>
+                          <Link href="/user/signup">Sign up</Link>
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </SheetContent>
+              </Sheet>
             </div>
           </div>
-          
-          <div className="flex items-center gap-2">
-            <ShoppinCart />
-            <DarkModeSwitch />
-            <Button asChild variant="outline" size="sm">
-              <Link href={session ? "/api/auth/signout" : "/user/signin"}>
-                {session ? "Sign out" : "Sign in"}
-              </Link>
-            </Button>
-            {!session && (
-              <Button asChild size="sm">
-                <Link href="/user/signup">Sign up</Link>
-              </Button>
-            )}
-          </div>
-        </nav>
-
-        {/* Mobile Menu */}
-        <div className="block lg:hidden">
-          <div className="flex items-center justify-between pr-4 pl-4">
-            {/* Logo */}
-            <a href={logo.url} className="flex items-center gap-2">
-              <Image
-                src={logo.src}
-                className="max-h-8"
-                alt={logo.alt}
-                width={32}
-                height={32}
-              />
-            </a>
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="icon">
-                  <Menu className="size-4" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent className="overflow-y-auto">
-                <SheetHeader>
-                  <SheetTitle>
-                    <a href={logo.url} className="flex items-center gap-2">
-                      <Image
-                        src={logo.src}
-                        className="max-h-8"
-                        alt={logo.alt}
-                        width={32}
-                        height={32}
-                      />
-                    </a>
-                  </SheetTitle>
-                </SheetHeader>
-                <div className="flex flex-col gap-6 p-4">
-                  <Accordion
-                    type="single"
-                    collapsible
-                    className="flex w-full flex-col gap-4"
-                  >
-                    {selectedMenu.map((item) => renderMobileMenuItem(item))}
-                  </Accordion>
-
-                  <div className="flex flex-col gap-3">
-                    <Button asChild variant="outline">
-                      <Link
-                        href={session ? "/api/auth/signout" : "/user/signin"}
-                      >
-                        {session ? "Sign out" : "Sign in"}
-                      </Link>
-                    </Button>
-                    {!session && (
-                      <Button asChild>
-                        <Link href="/user/signup">Sign up</Link>
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </SheetContent>
-            </Sheet>
-          </div>
         </div>
-      </div>
-    </section>
+      </section>
     </HydrateClient>
   );
 };

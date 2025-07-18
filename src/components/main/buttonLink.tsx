@@ -8,7 +8,7 @@ interface buttonLinkProps {
 
 export default function buttonLink({ href, children }: buttonLinkProps) {
   return (
-    <Button asChild className="w-full">
+    <Button asChild>
       <Link href={href}>{children}</Link>
     </Button>
   );

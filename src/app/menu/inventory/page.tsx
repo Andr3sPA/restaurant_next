@@ -3,6 +3,7 @@ import { MenuItemsTable } from "@/components/InventoryTable/MenuItemsTable";
 import ReturnButton from "@/components/ReturnButton";
 import TableTitle from "@/components/TableTitle";
 import TableDescription from "@/components/TableDescription";
+import Link from "next/link";
 
 export default function InventoryPage() {
   // Renderiza la interfaz principal de gestión de inventario del menú
@@ -18,6 +19,13 @@ export default function InventoryPage() {
         </div>
         {/* Tabla principal de inventario */}
         <MenuItemsTable />
+        <div className="mt-4 flex justify-end">
+          <Link href="/menu/register">
+            <button className="bg-primary hover:bg-primary/80 rounded-md px-4 py-2 text-white transition">
+              Añadir nuevo elemento
+            </button>
+          </Link>
+        </div>
       </div>
     </div>
   );
