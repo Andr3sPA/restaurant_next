@@ -32,15 +32,17 @@ export default function RootLayout({
   return (
     <html suppressHydrationWarning lang="en" className={`${geist.variable}`}>
       <head>
-        {/* Script para manejar el modo oscuro desde localStorage */}
+        {/* Script para manejar el modo oscuro desde localStorage - movido antes del body */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(() => {
+            __html: `(function() {
               try {
-                const dark = localStorage.getItem('darkMode') === '1';
-                document.documentElement.classList.toggle('dark', dark);
-              } catch (_) {}
-            })()`,
+                var theme = localStorage.getItem('darkMode');
+                if (theme === '1') {
+                  document.documentElement.classList.add('dark');
+                }
+              } catch (e) {}
+            })();`,
           }}
         />
       </head>
@@ -51,7 +53,7 @@ export default function RootLayout({
               <NavbarClient />
               <NuqsAdapter>
                 <Suspense
-                  fallback=<Loader className="absolute top-1/2 left-1/2 -translate-1/2 scale-150 animate-spin" />
+                  fallback={<Loader className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 scale-150 animate-spin" />}
                 >
                   {children}
                   {/* Carrito de compras flotante */}
