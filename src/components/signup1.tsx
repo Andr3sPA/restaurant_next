@@ -1,5 +1,7 @@
 "use client";
 
+// Componente para mostrar el formulario de registro de usuario
+
 import { FcGoogle } from "react-icons/fc";
 import { useState } from "react";
 import Image from "next/image";

@@ -28,6 +28,7 @@ interface MenuItem {
   image: string | null;
 }
 
+// Componente para editar los detalles de un elemento del menú
 export default function EditMenuItemDialog({
   menuItem,
 }: {

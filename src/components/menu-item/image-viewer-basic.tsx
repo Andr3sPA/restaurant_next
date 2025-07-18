@@ -30,6 +30,7 @@ interface ImageViewerProps {
   showControls?: boolean;
 }
 
+// Componente para mostrar una imagen con visor ampliable y controles de zoom
 const ImageViewer_Basic = ({
   className,
   classNameImageViewer,
@@ -56,7 +57,7 @@ const ImageViewer_Basic = ({
             height={300}
             className={cn(
               "h-auto w-full rounded-lg object-contain transition-opacity hover:opacity-90",
-              classNameThumbnailViewer
+              classNameThumbnailViewer,
             )}
             onError={handleImgError}
           />
@@ -85,7 +86,7 @@ const ImageViewer_Basic = ({
                       height={800}
                       className={cn(
                         "max-h-[90vh] max-w-[90vw] object-contain",
-                        classNameImageViewer
+                        classNameImageViewer,
                       )}
                       onError={handleImgError}
                     />

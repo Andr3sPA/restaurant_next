@@ -1,3 +1,4 @@
+// Componente para mostrar el saludo principal en la página de inicio
 export default function TitleGreeting() {
   return (
     <div className="flex flex-col gap-y-5">

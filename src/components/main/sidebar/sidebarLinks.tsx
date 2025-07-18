@@ -11,6 +11,7 @@ const AdminLinks = [
   { text: "Inventario", link: "/menu/inventory/", icon: Archive },
 ];
 
+// Componente para mostrar los enlaces de navegación en la barra lateral según el rol del usuario
 export default async function SidebarLinks() {
   const session = await auth();
 

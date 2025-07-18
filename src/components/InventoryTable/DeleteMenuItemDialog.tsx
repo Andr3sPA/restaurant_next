@@ -26,6 +26,7 @@ interface MenuItem {
   image: string | null;
 }
 
+// Componente para mostrar el diálogo de confirmación y eliminar un elemento del menú
 export default function DeleteMenuItemDialog({
   menuItem,
 }: {

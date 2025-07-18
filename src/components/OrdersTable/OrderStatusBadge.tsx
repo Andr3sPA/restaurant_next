@@ -53,6 +53,7 @@ function getStatusLabel(status: OrderStatus) {
   }
 }
 
+// Componente para mostrar el estado de un pedido con icono y color
 export default function OrderStatusBadge({ status }: { status: OrderStatus }) {
   const Icon = getStatusIcon(status);
   return (

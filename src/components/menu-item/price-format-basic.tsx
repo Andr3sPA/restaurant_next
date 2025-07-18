@@ -11,6 +11,7 @@ interface PriceFormat_BasicProps extends React.HTMLAttributes<HTMLDivElement> {
   decimalScale?: number;
 }
 
+// Componente para mostrar el precio formateado con separadores y símbolo de moneda
 const PriceFormat_Basic: React.FC<PriceFormat_BasicProps> = ({
   className,
   decimalScale = 2,

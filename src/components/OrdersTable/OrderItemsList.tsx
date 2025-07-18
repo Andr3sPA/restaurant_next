@@ -8,6 +8,7 @@ interface Item {
   menuItem: { name: string };
 }
 
+// Componente para mostrar la lista de ítems de un pedido
 export default function OrderItemsList({ items }: { items: Item[] }) {
   return (
     <ScrollArea className="h-[180px] w-full rounded-md border">

@@ -23,6 +23,7 @@ import { api } from "@/trpc/react";
 import { type OrderStatus } from "@prisma/client";
 import OrderItemsList from "./OrderItemsList";
 
+// Componente para mostrar el diálogo con los detalles de un pedido y permitir actualizar su estado
 export default function OrderDetailsDialog({ orderId }: { orderId: string }) {
   const [open, setOpen] = React.useState(false);
   const [selectedStatus, setSelectedStatus] = React.useState<OrderStatus | "">(

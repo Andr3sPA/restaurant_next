@@ -13,6 +13,7 @@ import Image from "next/image";
 import { ShoppingCart } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 
+// Componente para mostrar la lista de productos del menú y permitir añadirlos al carrito
 export default function Menu() {
   const { addItem } = useCart();
 

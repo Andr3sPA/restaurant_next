@@ -1,5 +1,6 @@
 "use client";
 
+// Componente principal para mostrar y gestionar la tabla de usuarios
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useDataTable } from "@/hooks/use-data-table";
@@ -20,6 +21,7 @@ import UserInfoCell from "./UsersTable/UserInfoCell";
 
 // Componente para gestionar usuarios con tabla que muestra información básica y permite cambiar roles y eliminar usuarios
 export function UsersTable() {
+  // Filtros de búsqueda por nombre y rol
   const [name] = useQueryState("name", parseAsString.withDefault(""));
   const [role] = useQueryState(
     "role",
@@ -91,6 +93,7 @@ export function UsersTable() {
     });
   }, [name, role, users]);
 
+  // Definición de columnas de la tabla
   const columns = React.useMemo<ColumnDef<UserData>[]>(
     () => [
       {
@@ -206,6 +209,7 @@ export function UsersTable() {
     getRowId: (row) => row.id,
   });
 
+  // Renderizado condicional según estado de carga o error
   if (isLoading) {
     return <TableLoadingState message="Cargando usuarios..." />;
   }
@@ -216,5 +220,6 @@ export function UsersTable() {
     );
   }
 
+  // Renderiza la tabla de usuarios
   return <TableWrapper table={table} />;
 }

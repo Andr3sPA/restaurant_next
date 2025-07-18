@@ -4,6 +4,7 @@ import { signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Button } from "../ui/button";
 
+// Componente para mostrar el botón de cerrar sesión
 export default function Logged() {
   const router = useRouter();
 

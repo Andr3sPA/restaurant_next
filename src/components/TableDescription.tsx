@@ -1,3 +1,4 @@
+// Componente para mostrar la descripción de una tabla
 interface TableDescriptionProps {
   description: string;
 }

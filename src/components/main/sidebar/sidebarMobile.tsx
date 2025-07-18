@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { MenuIcon } from "lucide-react";
 import SidebarContent from "./sidebarContent";
 
+// Componente para mostrar la barra lateral en dispositivos móviles
 export default function SidebarMobile() {
   return (
     <Sheet>
