@@ -1,4 +1,4 @@
-import { OrdersTable } from "@/components/ordersTable";
+import { OrdersTable } from "@/components/OrdersTable/OrdersTable";
 import ReturnButton from "@/components/ReturnButton";
 import TableTitle from "@/components/TableTitle";
 import TableDescription from "@/components/TableDescription";
