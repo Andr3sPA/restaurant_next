@@ -99,3 +99,21 @@ Para ejecutar este proyecto localmente, sigue estos pasos:
     ```
 
 Abre [http://localhost:3000](http://localhost:3000) en tu navegador para ver la aplicación.
+
+## Credenciales de Prueba
+
+Para probar la aplicación con los diferentes roles, puedes usar las siguientes credenciales:
+
+- **Administrador:**
+
+  - **Email:** `admin@gmail.com`
+  - **Contraseña:** `k&oa8vLN883`
+
+- **Empleado:**
+
+  - **Email:** `empleado@gmail.com`
+  - **Contraseña:** `XiN$cy9ODN`
+
+- **Cliente:**
+  - **Email:** `usuario@gmail.com`
+  - **Contraseña:** `cH!fI0ihI*`
