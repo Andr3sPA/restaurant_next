@@ -25,15 +25,32 @@ interface MenuItem {
   image: string | null;
 }
 
+// Hook para detectar el tamaño de la pantalla
+const useMediaQuery = (query: string) => {
+  const [matches, setMatches] = React.useState(false);
+
+  React.useEffect(() => {
+    const mediaQuery = window.matchMedia(query);
+    const handler = (event: MediaQueryListEvent) => setMatches(event.matches);
+    setMatches(mediaQuery.matches);
+    mediaQuery.addEventListener("change", handler);
+    return () => mediaQuery.removeEventListener("change", handler);
+  }, [query]);
+
+  return matches;
+};
+
 // Componente para renderizar una card individual
 function MenuItemCard({ item }: { item: MenuItem }) {
   const { addItem } = useCart();
 
   return (
     <Link href={`/menu/${item.id}`}>
-      <Card className="flex h-auto min-h-[320px] w-full max-w-sm flex-col gap-2 cursor-pointer hover:shadow-lg transition-shadow">
+      <Card className="flex h-auto min-h-[320px] w-full max-w-sm cursor-pointer flex-col gap-2 transition-shadow hover:shadow-lg">
         <CardHeader className="flex flex-col items-center space-y-4">
-          <CardTitle className="text-center text-base font-semibold">{item.name}</CardTitle>
+          <CardTitle className="text-center text-base font-semibold [word-break:break-word]">
+            {item.name}
+          </CardTitle>
           <div className="flex h-[150px] w-[150px] items-center justify-center">
             <Image
               src={item.image ?? "/favicon.ico"}
@@ -45,8 +62,9 @@ function MenuItemCard({ item }: { item: MenuItem }) {
           </div>
           {/* Mostrar precio */}
           <div className="text-center">
-            <span className="text-lg font-bold text-primary">
-              {item.currency}{item.price.toFixed(2)}
+            <span className="text-primary text-lg font-bold">
+              {item.currency}
+              {item.price.toFixed(2)}
             </span>
           </div>
         </CardHeader>
@@ -80,18 +98,26 @@ function MenuItemCard({ item }: { item: MenuItem }) {
 export default function Menu() {
   const [name] = useQueryState("name", parseAsString.withDefault(""));
 
+  const isSmallScreen = useMediaQuery("(max-width: 768px)");
+  const isMediumScreen = useMediaQuery("(max-width: 1024px)");
+
   const {
     data: menuItems = [],
     isLoading,
     error,
   } = api.menu.getPublicMenuItems.useQuery();
 
+  const numColumns = React.useMemo(() => {
+    if (isSmallScreen) return 1;
+    if (isMediumScreen) return 2;
+    return 4;
+  }, [isSmallScreen, isMediumScreen]);
+
   // Filtrar datos del lado del cliente
   const filteredData = React.useMemo(() => {
     return menuItems.filter((item) => {
       const matchesName =
-        name === "" ||
-        item.name.toLowerCase().includes(name.toLowerCase());
+        name === "" || item.name.toLowerCase().includes(name.toLowerCase());
 
       return matchesName;
     });
@@ -99,53 +125,28 @@ export default function Menu() {
 
   const columns = React.useMemo<ColumnDef<MenuItem>[]>(
     () => [
-      {
-        id: "col1",
+      ...Array.from({ length: numColumns }, (_, i) => ({
+        id: `col${i + 1}`,
         header: "Productos",
-        cell: ({ row }) => {
-          const rowIndex = row.index;
-          const item = filteredData[rowIndex * 4];
-          return item ? <MenuItemCard item={item} /> : <div className="h-[320px]"></div>;
+        cell: ({ row }: { row: { index: number } }) => {
+          const item = filteredData[row.index * numColumns + i];
+          return item ? (
+            <MenuItemCard item={item} />
+          ) : (
+            <div className="h-[320px]"></div>
+          );
         },
         enableSorting: false,
-      },
-      {
-        id: "col2",
-        header: "Productos",
-        cell: ({ row }) => {
-          const rowIndex = row.index;
-          const item = filteredData[rowIndex * 4 + 1];
-          return item ? <MenuItemCard item={item} /> : <div className="h-[320px]"></div>;
-        },
-        enableSorting: false,
-      },
-      {
-        id: "col3",
-        header: "Productos",
-        cell: ({ row }) => {
-          const rowIndex = row.index;
-          const item = filteredData[rowIndex * 4 + 2];
-          return item ? <MenuItemCard item={item} /> : <div className="h-[320px]"></div>;
-        },
-        enableSorting: false,
-      },
-      {
-        id: "col4",
-        header: "Productos",
-        cell: ({ row }) => {
-          const rowIndex = row.index;
-          const item = filteredData[rowIndex * 4 + 3];
-          return item ? <MenuItemCard item={item} /> : <div className="h-[320px]"></div>;
-        },
-        enableSorting: false,
-      },
+      })),
       {
         id: "name",
         accessorKey: "name",
         header: ({ column }: { column: Column<MenuItem, unknown> }) => (
           <DataTableColumnHeader column={column} title="Nombre" />
         ),
-        cell: ({ cell }) => <div className="hidden">{cell.getValue<MenuItem["name"]>()}</div>,
+        cell: ({ cell }) => (
+          <div className="hidden">{cell.getValue<MenuItem["name"]>()}</div>
+        ),
         meta: {
           label: "Nombre",
           placeholder: "Buscar productos...",
@@ -155,22 +156,22 @@ export default function Menu() {
         enableColumnFilter: true,
       },
     ],
-    [filteredData],
+    [filteredData, numColumns],
   );
 
   // Calcular número de filas necesarias para mostrar 4 items por fila
   const rowData = React.useMemo<MenuItem[]>(() => {
-    const numberOfRows = Math.ceil(filteredData.length / 4);
+    const numberOfRows = Math.ceil(filteredData.length / numColumns);
     const rows: MenuItem[] = [];
-    
+
     // Crear filas dummy, cada fila representa un grupo de 4 items
     for (let i = 0; i < numberOfRows; i++) {
-      const firstItem = filteredData[i * 4];
+      const firstItem = filteredData[i * numColumns];
       if (firstItem) rows.push(firstItem);
     }
-    
+
     return rows;
-  }, [filteredData]);
+  }, [filteredData, numColumns]);
 
   const { table } = useDataTable<MenuItem>({
     data: rowData,
@@ -192,9 +193,9 @@ export default function Menu() {
     <div className="data-table-container">
       {/* Solo mostrar la toolbar con filtros */}
       <DataTableToolbar table={table} />
-      
+
       {/* Tabla con estilos invisibles - solo mostrar las cards */}
-      <div className="[&_table]:border-none [&_thead]:hidden [&_tbody_tr]:border-none [&_tbody_td]:border-none [&_tbody_td]:p-2">
+      <div className="[&_table]:border-none [&_tbody_td]:border-none [&_tbody_td]:p-2 [&_tbody_tr]:border-none [&_thead]:hidden">
         <DataTable table={table} />
       </div>
     </div>

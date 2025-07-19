@@ -42,20 +42,23 @@ const ACCEPTED_IMAGE_MIME_TYPES = [
 ];
 
 const formSchema = z.object({
-  name: z.string().min(1, { message: "Name is required" }),
+  name: z.string().min(1, { message: "El nombre es requerido" }),
   description: z.string().optional(),
   image: z
     .array(z.instanceof(File))
-    .min(1, "Image is required.")
+    .min(1, "La imagen es requerida.")
     .refine((files) => {
       return files[0] && files[0].size <= MAX_FILE_SIZE;
-    }, `Max image size is 5MB.`)
+    }, `El tamaño máximo de la imagen es 5MB.`)
     .refine(
       (files) => files[0] && ACCEPTED_IMAGE_MIME_TYPES.includes(files[0].type),
-      "Only .jpg, .jpeg, .png and .webp formats are supported.",
+      "Solo se admiten los formatos .jpg, .jpeg, .png y .webp.",
     ),
-  currency: z.string().min(1, { message: "Currency is required" }),
-  price: z.number().min(0.01, { message: "Price must be greater than 0" }),
+  currency: z.string().min(1, { message: "La moneda es requerida" }),
+  price: z.union([
+    z.number().min(0.01, { message: "El precio debe ser mayor que 0" }),
+    z.string().min(1, { message: "El precio es requerido" }),
+  ]),
 });
 
 // Componente para registrar un nuevo elemento en el menú
@@ -126,7 +129,7 @@ export default function MyForm() {
 
   const onFileReject = React.useCallback((file: File, message: string) => {
     toast(message, {
-      description: `"${file.name.length > 20 ? `${file.name.slice(0, 20)}...` : file.name}" has been rejected`,
+      description: `"${file.name.length > 20 ? `${file.name.slice(0, 20)}...` : file.name}" ha sido rechazado`,
     });
   }, []);
 
@@ -136,19 +139,19 @@ export default function MyForm() {
       name: "",
       description: "",
       currency: "COP",
-      price: 0,
+      price: "",
       image: undefined,
     },
   });
   const { mutate, isPending } = api.menu.registerMenuItem.useMutation({
     onSuccess: () => {
-      toast.success("Menu item registered successfully!");
+      toast.success("Elemento del menú registrado con éxito!");
       form.reset();
       setFiles([]);
     },
     onError: (error) => {
-      toast.error(`Registration failed: ${error.message}`);
-      console.error("menu item registration failed:", error);
+      toast.error(`Registro fallido: ${error.message}`);
+      console.error("falló el registro del elemento del menú:", error);
     },
   });
   function onSubmit(values: z.infer<typeof formSchema>) {
@@ -156,7 +159,7 @@ export default function MyForm() {
       // Get the file from the files state (FileUploader component)
       const file = files?.[0];
       if (!file) {
-        toast.error("Please select an image");
+        toast.error("Por favor seleccione una imagen");
         return;
       }
 
@@ -168,13 +171,15 @@ export default function MyForm() {
           currency: values.currency,
           description: values.description ?? "",
           image: base64,
-          price: values.price,
+          price: Number(values.price),
         });
       };
       reader.readAsDataURL(file);
     } catch (error) {
-      console.error("Form submission error", error);
-      toast.error("Failed to submit the form. Please try again.");
+      console.error("Error al enviar el formulario", error);
+      toast.error(
+        "No se pudo enviar el formulario. Por favor, inténtelo de nuevo.",
+      );
     }
   }
 
@@ -194,15 +199,17 @@ export default function MyForm() {
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Menu Item Name</FormLabel>
+              <FormLabel>Nombre del Elemento del Menú</FormLabel>
               <FormControl>
                 <Input
-                  placeholder="Enter menu item name"
+                  placeholder="Ingrese el nombre del elemento del menú"
                   type="text"
                   {...field}
                 />
               </FormControl>
-              <FormDescription>The name of your menu item.</FormDescription>
+              <FormDescription>
+                El nombre de su elemento del menú.
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -213,16 +220,16 @@ export default function MyForm() {
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Description</FormLabel>
+              <FormLabel>Descripción</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="Describe your menu item..."
+                  placeholder="Describa su elemento del menú..."
                   className="resize-none"
                   {...field}
                 />
               </FormControl>
               <FormDescription>
-                Optional description of the menu item.
+                Descripción opcional del elemento del menú.
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -235,7 +242,7 @@ export default function MyForm() {
             name="image"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Menu Item Image</FormLabel>
+                <FormLabel>Imagen del Elemento del Menú</FormLabel>
                 <FormControl>
                   <FileUpload
                     value={files}
@@ -258,10 +265,11 @@ export default function MyForm() {
                           <Upload className="text-muted-foreground size-6" />
                         </div>
                         <p className="text-sm font-medium">
-                          Drag & drop image here
+                          Arrastra y suelta la imagen aquí
                         </p>
                         <p className="text-muted-foreground text-xs">
-                          Or click to browse (PNG, JPG, JPEG or WEBP, max 5MB)
+                          O haz clic para buscar (PNG, JPG, JPEG o WEBP, máx.
+                          5MB)
                         </p>
                       </div>
                       <FileUploadTrigger asChild>
@@ -270,7 +278,7 @@ export default function MyForm() {
                           size="sm"
                           className="mt-2 w-fit"
                         >
-                          Browse images
+                          Buscar imágenes
                         </Button>
                       </FileUploadTrigger>
                     </FileUploadDropzone>
@@ -303,7 +311,7 @@ export default function MyForm() {
                   </FileUpload>
                 </FormControl>
                 <FormDescription>
-                  Upload an image for your menu item (required).
+                  Sube una imagen para tu elemento del menú (requerido).
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -318,7 +326,7 @@ export default function MyForm() {
                 "text-destructive",
             )}
           >
-            Price
+            Precio
           </FormLabel>
           <div className="flex items-center gap-2">
             <FormField
@@ -329,7 +337,7 @@ export default function MyForm() {
                   <CurrencySelect
                     onValueChange={field.onChange}
                     onCurrencySelect={handleCurrencySelect}
-                    placeholder="Currency"
+                    placeholder="Moneda"
                     disabled={false}
                     currencies="all"
                     variant="small"
@@ -350,7 +358,7 @@ export default function MyForm() {
                       placeholder="0.00"
                       {...field}
                       disabled={!selectedCurrency}
-                      onChange={(e) => field.onChange(Number(e.target.value))}
+                      onChange={(e) => field.onChange(e.target.value)}
                       className="pr-10"
                     />
                   </FormControl>
@@ -362,7 +370,7 @@ export default function MyForm() {
             />
           </div>
           <FormDescription>
-            Select currency and enter the price for this menu item
+            Seleccione la moneda e ingrese el precio para este elemento del menú
           </FormDescription>
           {(form.formState.errors.currency ?? form.formState.errors.price) && (
             <div className="text-destructive text-[0.8rem] font-medium">
@@ -376,7 +384,7 @@ export default function MyForm() {
           )}
         </div>
         <Button type="submit" disabled={isPending}>
-          {isPending ? "Registering..." : "Register Menu Item"}
+          {isPending ? "Registrando..." : "Registrar Elemento del Menú"}
         </Button>
       </form>
     </Form>
