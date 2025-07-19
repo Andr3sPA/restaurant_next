@@ -8,7 +8,7 @@
 
 ### Enlace de despliegue:
 
-[https://restaurant-next-alpha.vercel.app/](https://restaurant-next-alpha.vercel.app/)
+[https://empanadas-restaurante.vercel.app/](https://empanadas-restaurante.vercel.app/)
 
 ## Descripcion del proyecto
 
