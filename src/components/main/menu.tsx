@@ -89,7 +89,7 @@ export default function Menu() {
           <p className="mb-5 flex items-center gap-2 text-sm font-medium tracking-[0.2em] text-stone-500 uppercase">
             <Sparkles className="h-4 w-4" /> Hecho para quedarse
           </p>
-          <h1 className="max-w-3xl text-5xl leading-[0.95] font-medium tracking-tight text-stone-900 sm:text-7xl">
+          <h1 className="font-display text-primary max-w-3xl text-6xl leading-[0.86] font-semibold tracking-tight sm:text-8xl">
             Prendas con historia, bordadas para ti.
           </h1>
           <p className="mt-7 max-w-xl text-lg leading-8 text-stone-600">
@@ -103,15 +103,20 @@ export default function Menu() {
             Ver colección <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
-        <div className="relative min-h-[420px] overflow-hidden rounded-[2rem] bg-[#d9c8b7]">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,.55),transparent_35%),linear-gradient(135deg,#d9c8b7,#9e7b66)]" />
-          <div className="absolute bottom-8 left-8 max-w-xs text-white">
-            <p className="text-sm tracking-[0.2em] text-white/70 uppercase">
-              Nueva temporada
-            </p>
-            <p className="mt-2 text-3xl font-medium">
-              El detalle hace la diferencia.
-            </p>
+        <div className="bg-primary relative min-h-[420px] overflow-hidden rounded-[2rem] p-4">
+          <div className="stitch-border relative h-full min-h-[388px] overflow-hidden rounded-[1.5rem] bg-[#ad7662]">
+            <div className="absolute inset-0 [background-image:linear-gradient(45deg,transparent_45%,#f4dfc8_46%,#f4dfc8_49%,transparent_50%),linear-gradient(-45deg,transparent_45%,#f4dfc8_46%,#f4dfc8_49%,transparent_50%)] [background-size:34px_34px] opacity-30" />
+            <div className="absolute top-8 right-8 rounded-full border border-[#f4dfc8]/60 px-4 py-2 text-xs tracking-[0.2em] text-[#f4dfc8] uppercase">
+              pieza 01 / 04
+            </div>
+            <div className="absolute bottom-8 left-8 max-w-xs text-[#fff7ec]">
+              <p className="text-sm tracking-[0.2em] text-[#f4dfc8]/80 uppercase">
+                Nueva temporada
+              </p>
+              <p className="font-display mt-2 text-5xl leading-none font-semibold">
+                El detalle hace la diferencia.
+              </p>
+            </div>
           </div>
         </div>
       </section>
@@ -122,7 +127,7 @@ export default function Menu() {
             <p className="text-sm tracking-[0.2em] text-stone-500 uppercase">
               La colección
             </p>
-            <h2 className="mt-2 text-3xl font-medium text-stone-900">
+            <h2 className="font-display text-primary mt-2 text-5xl font-semibold">
               Encuentra tu próxima favorita
             </h2>
           </div>

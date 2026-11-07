@@ -2,7 +2,7 @@
 import "@/styles/globals.css";
 
 import { type Metadata } from "next";
-import { Geist } from "next/font/google";
+import { DM_Sans, Cormorant_Garamond } from "next/font/google";
 
 import { TRPCReactProvider } from "@/trpc/react";
 import { Toaster } from "@/components/ui/sonner";
@@ -19,9 +19,15 @@ export const metadata: Metadata = {
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 
-const geist = Geist({
+const sans = DM_Sans({
   subsets: ["latin"],
-  variable: "--font-geist-sans",
+  variable: "--font-body",
+});
+
+const display = Cormorant_Garamond({
+  subsets: ["latin"],
+  variable: "--font-display",
+  weight: ["500", "600", "700"],
 });
 
 export default function RootLayout({
@@ -29,7 +35,11 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   // Renderiza el layout principal con todos los proveedores y la estructura base
   return (
-    <html suppressHydrationWarning lang="es" className={`${geist.variable}`}>
+    <html
+      suppressHydrationWarning
+      lang="es"
+      className={`${sans.variable} ${display.variable}`}
+    >
       <head>
         {/* Script para manejar el modo oscuro desde localStorage - movido antes del body */}
         <script

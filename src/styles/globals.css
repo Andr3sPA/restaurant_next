@@ -5,8 +5,9 @@
 
 @theme {
   --font-sans:
-    var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif,
-    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    var(--font-body), ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-display: var(--font-display), Georgia, "Times New Roman", serif;
 }
 
 @theme inline {
@@ -49,24 +50,24 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --background: oklch(0.975 0.012 82);
+  --foreground: oklch(0.24 0.025 35);
+  --card: oklch(0.99 0.006 82);
+  --card-foreground: oklch(0.24 0.025 35);
+  --popover: oklch(0.99 0.006 82);
+  --popover-foreground: oklch(0.24 0.025 35);
+  --primary: oklch(0.38 0.075 30);
+  --primary-foreground: oklch(0.98 0.01 82);
+  --secondary: oklch(0.91 0.045 82);
+  --secondary-foreground: oklch(0.28 0.04 35);
+  --muted: oklch(0.94 0.025 82);
+  --muted-foreground: oklch(0.51 0.04 35);
+  --accent: oklch(0.88 0.075 196);
+  --accent-foreground: oklch(0.24 0.04 200);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --border: oklch(0.86 0.035 82);
+  --input: oklch(0.86 0.035 82);
+  --ring: oklch(0.51 0.09 30);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -122,8 +123,32 @@
   }
   body {
     @apply bg-background text-foreground;
+    background-image: radial-gradient(
+      oklch(0.42 0.04 35 / 0.07) 0.7px,
+      transparent 0.7px
+    );
+    background-size: 13px 13px;
   }
   button {
     cursor: pointer !important;
+  }
+
+  @layer utilities {
+    .font-display {
+      font-family: var(--font-display);
+    }
+
+    .stitch-border {
+      border: 1px dashed oklch(0.45 0.06 35 / 0.45);
+    }
+
+    .thread-line {
+      background: repeating-linear-gradient(
+        90deg,
+        oklch(0.42 0.08 30) 0 8px,
+        transparent 8px 14px
+      );
+      height: 1px;
+    }
   }
 }

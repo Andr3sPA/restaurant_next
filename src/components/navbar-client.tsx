@@ -30,9 +30,9 @@ export function NavbarClient() {
           <span className="grid h-9 w-9 place-items-center rounded-full bg-stone-900 text-sm font-semibold text-white">
             PB
           </span>
-          <span className="text-lg font-semibold tracking-tight text-stone-900">
+          <span className="font-display text-primary text-2xl font-semibold tracking-tight">
             Primaveral{" "}
-            <span className="font-normal text-stone-500">Bordados</span>
+            <span className="text-muted-foreground font-normal">Bordados</span>
           </span>
         </Link>
         <nav className="hidden items-center gap-7 md:flex">
