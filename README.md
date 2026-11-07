@@ -1,119 +1,43 @@
-# Sistema de Gestión de Restaurante
+# Primaveral Bordados
 
-### Miembros del Equipo
+Tienda de ropa bordada construida sobre el proyecto base de restaurante. Mantiene Next.js, tRPC, Prisma, NextAuth, Tailwind y los componentes Radix/shadcn existentes, adaptados a catálogo, carrito, pedidos e inventario de prendas.
 
-- Andrés Darío Peña Asprilla
-- Sneyder Buitrago Gonzalez
-- Wilmer Santiago Soto Vidal
+## Funcionalidades
 
-### Enlace de despliegue:
+- Catálogo público con búsqueda, categorías, destacados y detalle de producto.
+- Carrito persistente en el navegador con cantidades y control de stock al crear pedidos.
+- Checkout preparado para conectar un proveedor de pago; actualmente registra el pedido como pendiente y no almacena datos de tarjeta.
+- Autenticación con roles `CLIENT`, `EMPLOYEE` y `ADMIN`.
+- Panel administrativo en `/admin` con accesos a inventario, alta de productos, pedidos y métricas.
+- Productos con categoría, tallas, colores, imagen, precio, stock y disponibilidad.
 
-[https://empanadas-restaurante.vercel.app/](https://empanadas-restaurante.vercel.app/)
+## Variables de entorno
 
-## Descripcion del proyecto
+Crea `.env` en la raíz y nunca lo subas al repositorio:
 
-Este es un proyecto full-stack para la gestión de un restaurante, construido con el stack T3. La aplicación permite a los clientes ver el menú y realizar pedidos, mientras que el personal del restaurante puede gestionar los pedidos, el inventario y otros aspectos del negocio.
+```env
+DATABASE_URL="postgresql://..."
+AUTH_SECRET="genera-un-secreto-largo-y-aleatorio"
+NODE_ENV="development"
+```
 
-## Características Principales
+En Vercel configura las mismas variables para `Production`, `Preview` y `Development`. `DIRECT_URL` ya no es necesaria: Prisma usa `DATABASE_URL` para esta base Neon.
 
-- **Visualización del Menú:** Los usuarios pueden explorar los platos disponibles con descripciones, precios e imágenes.
-- **Gestión de Pedidos:** Los clientes pueden crear pedidos y los empleados pueden actualizar su estado (pendiente, en preparación, listo, etc.).
-- **Sistema de Autenticación:** Soporte para registro e inicio de sesión de usuarios con diferentes roles.
-- **Roles y Permisos:** El sistema define tres roles de usuario (`CLIENTE`, `EMPLEADO`, `ADMINISTRADOR`) con diferentes niveles de acceso.
-- **Panel de Administración:** Paneles dedicados para que empleados y administradores gestionen el restaurante.
+La credencial de Neon compartida durante la configuración debe considerarse expuesta y rotarse antes de desplegar.
 
-### Roles y Permisos
+## Desarrollo
 
-- **Cliente:**
+```bash
+npm install
+npx prisma db push
+npm run dev
+```
 
-  - `Inicio`: Página principal y visualización del menú.
-  - Realizar y pagar pedidos.
+Validaciones:
 
-- **Empleado:**
+```bash
+npm run typecheck
+npm run build
+```
 
-  - `Inicio`: Vista principal.
-  - `Pedidos`: Gestión de los pedidos de los clientes.
-  - `Inventario`: Administración de los platos del menú.
-  - `Añadir plato`: Formulario para registrar nuevos platos.
-
-- **Administrador:**
-  - Todos los permisos de un `Empleado`.
-  - `Usuarios`: Gestión de los usuarios del sistema.
-  - `Métricas`: Visualización de datos y estadísticas del negocio.
-
-## Stack Tecnológico
-
-Este proyecto está construido con las siguientes tecnologías:
-
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
-
-## Cómo Empezar
-
-Para ejecutar este proyecto localmente, sigue estos pasos:
-
-1.  **Clonar el repositorio**
-
-    ```bash
-    git clone https://github.com/tu-usuario/tu-repositorio.git
-    cd tu-repositorio
-    ```
-
-2.  **Instalar dependencias**
-
-    ```bash
-    npm install
-    ```
-
-3.  **Configurar las variables de entorno**
-    Crea un archivo `.env` en la raíz del proyecto y añade las variables necesarias, como la URL de la base de datos.
-
-    ```env
-    # Base de datos
-    DATABASE_URL="postgresql://..."
-    DIRECT_URL="postgresql://..."
-
-    # Autenticación
-    NEXTAUTH_SECRET="tu_secreto"
-    NEXTAUTH_URL="http://localhost:3000"
-
-    # Cloudinary para almacenamiento de imágenes
-    CLOUDINARY_CLOUD_NAME="tu_cloud_name"
-    CLOUDINARY_API_KEY="tu_api_key"
-    CLOUDINARY_API_SECRET="tu_api_secret"
-    CLOUDINARY_URL="cloudinary://..."
-    ```
-
-4.  **Aplicar las migraciones de la base de datos**
-
-    ```bash
-    npx prisma migrate dev
-    ```
-
-5.  **Iniciar el servidor de desarrollo**
-    ```bash
-    npm run dev
-    ```
-
-Abre [http://localhost:3000](http://localhost:3000) en tu navegador para ver la aplicación.
-
-## Credenciales de Prueba
-
-Para probar la aplicación con los diferentes roles, puedes usar las siguientes credenciales:
-
-- **Administrador:**
-
-  - **Email:** `admin@gmail.com`
-  - **Contraseña:** `k&oa8vLN883`
-
-- **Empleado:**
-
-  - **Email:** `empleado@gmail.com`
-  - **Contraseña:** `XiN$cy9ODN`
-
-- **Cliente:**
-  - **Email:** `usuario@gmail.com`
-  - **Contraseña:** `cH!fI0ihI*`
+Para administrar productos, crea una cuenta desde `/user/signup` y cambia su rol a `ADMIN` directamente en Neon o mediante el panel de usuarios existente.

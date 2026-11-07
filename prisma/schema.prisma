@@ -5,7 +5,7 @@ generator client {
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  directUrl = env("DATABASE_URL")
 }
 
 model User {
@@ -70,9 +70,14 @@ model MenuItem {
   id          String     @id @default(cuid())
   name        String
   description String?
-  currency    String
+  currency    String     @default("$")
   price       Float
   available   Boolean    @default(true)
+  category    String     @default("Novedades")
+  sizes       String[]   @default([])
+  colors      String[]   @default([])
+  stock       Int        @default(0)
+  featured    Boolean    @default(false)
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
   image       String?
