@@ -1,7 +1,7 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import type { ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState } from "react";
+import type { ReactNode } from "react";
 
 export interface CartItem {
   id: string;
@@ -10,12 +10,22 @@ export interface CartItem {
   imageUrl: string;
   prefix: string;
   price: number;
+  size?: string;
+  color?: string;
+  quantity: number;
 }
 
 interface CartContextType {
   items: CartItem[];
-  addItem: (item: CartItem) => void;
-  removeItem: (index: number) => void;
+  isHydrated: boolean;
+  addItem: (item: Omit<CartItem, "quantity">) => void;
+  removeItem: (id: string, size?: string, color?: string) => void;
+  updateQuantity: (
+    id: string,
+    quantity: number,
+    size?: string,
+    color?: string,
+  ) => void;
   clearCart: () => void;
   getTotalPrice: () => number;
   getItemCount: () => number;
@@ -25,71 +35,85 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const useCart = () => {
   const context = useContext(CartContext);
-  if (context === undefined) {
-    throw new Error('useCart must be used within a CartProvider');
-  }
+  if (!context) throw new Error("useCart must be used within a CartProvider");
   return context;
 };
 
-interface CartProviderProps {
-  children: ReactNode;
-}
-
-export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
+export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [isHydrated, setIsHydrated] = useState(false);
 
-  // Cargar items del localStorage al inicializar
   useEffect(() => {
-    const savedItems = localStorage.getItem('cartItems');
-    if (savedItems) {
-      try {
-        const parsedItems = JSON.parse(savedItems) as CartItem[];
-        setItems(parsedItems);
-      } catch (error) {
-        console.error('Error parsing saved cart items:', error);
-      }
+    try {
+      const saved = localStorage.getItem("primaveral-cart");
+      if (saved) setItems(JSON.parse(saved) as CartItem[]);
+    } catch {
+      localStorage.removeItem("primaveral-cart");
+    } finally {
+      setIsHydrated(true);
     }
   }, []);
 
-  // Guardar en localStorage cuando cambie el carrito
   useEffect(() => {
-    localStorage.setItem('cartItems', JSON.stringify(items));
-    // Disparar evento para componentes que escuchan localStorage
-    window.dispatchEvent(new Event('cartUpdated'));
+    localStorage.setItem("primaveral-cart", JSON.stringify(items));
+    window.dispatchEvent(new Event("cartUpdated"));
   }, [items]);
 
-  const addItem = (item: CartItem) => {
-    setItems(prev => [...prev, item]);
+  const sameItem = (
+    item: CartItem,
+    id: string,
+    size?: string,
+    color?: string,
+  ) => item.id === id && item.size === size && item.color === color;
+
+  const addItem = (item: Omit<CartItem, "quantity">) => {
+    setItems((current) => {
+      const existing = current.find((candidate) =>
+        sameItem(candidate, item.id, item.size, item.color),
+      );
+      if (existing) {
+        return current.map((candidate) =>
+          sameItem(candidate, item.id, item.size, item.color)
+            ? { ...candidate, quantity: Math.min(candidate.quantity + 1, 20) }
+            : candidate,
+        );
+      }
+      return [...current, { ...item, quantity: 1 }];
+    });
   };
 
-  const removeItem = (index: number) => {
-    setItems(prev => prev.filter((_, i) => i !== index));
-  };
+  const removeItem = (id: string, size?: string, color?: string) =>
+    setItems((current) =>
+      current.filter((item) => !sameItem(item, id, size, color)),
+    );
 
-  const clearCart = () => {
-    setItems([]);
-  };
+  const updateQuantity = (
+    id: string,
+    quantity: number,
+    size?: string,
+    color?: string,
+  ) =>
+    setItems((current) =>
+      current
+        .map((item) =>
+          sameItem(item, id, size, color)
+            ? { ...item, quantity: Math.min(Math.max(quantity, 0), 20) }
+            : item,
+        )
+        .filter((item) => item.quantity > 0),
+    );
 
-  const getTotalPrice = () => {
-    return items.reduce((total, item) => total + item.price, 0);
-  };
-
-  const getItemCount = () => {
-    return items.length;
-  };
-
-  const value: CartContextType = {
+  const value = {
     items,
+    isHydrated,
     addItem,
     removeItem,
-    clearCart,
-    getTotalPrice,
-    getItemCount,
+    updateQuantity,
+    clearCart: () => setItems([]),
+    getTotalPrice: () =>
+      items.reduce((total, item) => total + item.price * item.quantity, 0),
+    getItemCount: () => items.reduce((total, item) => total + item.quantity, 0),
   };
 
-  return (
-    <CartContext.Provider value={value}>
-      {children}
-    </CartContext.Provider>
-  );
-};
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
+}

@@ -1,25 +1,10 @@
 "use client";
 
-import { Menu } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
-import { Role } from "@prisma/client";
-import { useSession } from "next-auth/react";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+import { usePathname } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
+import { Menu, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-} from "@/components/ui/navigation-menu";
 import {
   Sheet,
   SheetContent,
@@ -27,254 +12,104 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { DarkModeSwitch } from "./darkModeSwitch";
 
-interface MenuItem {
-  title: string;
-  url: string;
-  description?: string;
-  icon?: React.ReactNode;
-  items?: MenuItem[];
-}
-
-interface NavbarClientProps {
-  logo?: {
-    url: string;
-    src: string;
-    alt: string;
-    title: string;
-  };
-  menu?: MenuItem[];
-}
-
-const NavbarClient = ({
-  logo = {
-    url: "/",
-    src: "https://deifkwefumgah.cloudfront.net/shadcnblocks/block/logos/shadcnblockscom-icon.svg",
-    alt: "logo",
-    title: "Shadcnblocks.com",
-  },
-  menu,
-}: NavbarClientProps) => {
-  const { data: session, status } = useSession();
-
-  // Definir menús según el rol del usuario
-  const clientMenu = [{ title: "Inicio", url: "/" }];
-
-  const employeeMenu = [
-    { title: "Inicio", url: "/" },
-    { title: "Pedidos", url: "/orders" },
-    { title: "Inventario", url: "/menu/inventory" },
-    { title: "Añadir plato", url: "/menu/register" },
+export function NavbarClient() {
+  const pathname = usePathname();
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === "ADMIN";
+  const links = [
+    { href: "/", label: "Colección" },
+    { href: "/#coleccion", label: "Categorías" },
+    ...(isAdmin ? [{ href: "/admin", label: "Administración" }] : []),
   ];
-
-  const adminMenu = [
-    { title: "Inicio", url: "/" },
-    { title: "Pedidos", url: "/orders" },
-    { title: "Usuarios", url: "/users" },
-    { title: "Inventario", url: "/menu/inventory" },
-    { title: "Métricas", url: "/metrics" },
-  ];
-
-  const getMenuByRole = () => {
-    if (status === "loading" || !session?.user?.role) {
-      return [{ title: "Inicio", url: "/" }];
-    }
-
-    switch (session.user.role) {
-      case Role.CLIENT:
-        return clientMenu;
-      case Role.EMPLOYEE:
-        return employeeMenu;
-      case Role.ADMIN:
-        return adminMenu;
-      default:
-        return adminMenu;
-    }
-  };
-
-  // Calcular el menú seleccionado
-  const selectedMenu = menu ?? getMenuByRole();
 
   return (
-    <section className="py-4">
-      <div className="container">
-        {/* Desktop Menu */}
-        <nav className="hidden justify-between lg:flex">
-          <div className="flex items-center gap-6 pl-4">
-            {/* Logo */}
-            <a href={logo.url} className="flex items-center gap-2">
-              <Image
-                src={logo.src}
-                className="max-h-8"
-                alt={logo.alt}
-                width={32}
-                height={32}
-              />
-              <span className="text-lg font-semibold tracking-tighter">
-                {logo.title}
-              </span>
-            </a>
-            <div className="flex items-center">
-              <NavigationMenu>
-                <NavigationMenuList>
-                  {selectedMenu.map((item) => renderMenuItem(item))}
-                </NavigationMenuList>
-              </NavigationMenu>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <DarkModeSwitch />
-            <Button asChild variant="outline" size="sm">
-              <Link href={session ? "/api/auth/signout" : "/user/signin"}>
-                {session ? "Sign out" : "Sign in"}
-              </Link>
-            </Button>
-            {!session && (
-              <Button asChild size="sm">
-                <Link href="/user/signup">Sign up</Link>
-              </Button>
-            )}
-          </div>
+    <header className="sticky top-0 z-30 border-b border-stone-200/80 bg-[#faf9f7]/90 backdrop-blur">
+      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6 lg:px-10">
+        <Link href="/" className="flex items-center gap-3">
+          <span className="grid h-9 w-9 place-items-center rounded-full bg-stone-900 text-sm font-semibold text-white">
+            PB
+          </span>
+          <span className="font-display text-primary text-2xl font-semibold tracking-tight">
+            Primaveral{" "}
+            <span className="text-muted-foreground font-normal">Bordados</span>
+          </span>
+        </Link>
+        <nav className="hidden items-center gap-7 md:flex">
+          {links.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={`text-sm transition hover:text-stone-900 ${pathname === link.href ? "font-medium text-stone-900" : "text-stone-500"}`}
+            >
+              {link.label}
+            </Link>
+          ))}
         </nav>
-
-        {/* Mobile Menu */}
-        <div className="block lg:hidden">
-          <div className="flex items-center justify-between pr-4 pl-4">
-            {/* Logo */}
-            <a href={logo.url} className="flex items-center gap-2">
-              <Image
-                src={logo.src}
-                className="max-h-8"
-                alt={logo.alt}
-                width={32}
-                height={32}
-              />
-            </a>
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="icon">
-                  <Menu className="size-4" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent className="w-fit overflow-y-auto px-6">
-                <SheetHeader>
-                  <SheetTitle>
-                    <a href={logo.url} className="flex items-center gap-2">
-                      <Image
-                        src={logo.src}
-                        className="max-h-8"
-                        alt={logo.alt}
-                        width={32}
-                        height={32}
-                      />
-                    </a>
-                  </SheetTitle>
-                </SheetHeader>
-                <div className="flex w-fit flex-col items-center gap-6 p-4">
-                  <Accordion
-                    type="single"
-                    collapsible
-                    className="flex w-full flex-col gap-4"
+        <div className="flex items-center gap-2">
+          <Link
+            href="/checkout"
+            aria-label="Ver carrito"
+            className="rounded-full p-2 text-stone-600 transition hover:bg-stone-100 hover:text-stone-900"
+          >
+            <ShoppingBag className="h-5 w-5" />
+          </Link>
+          {session ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => signOut({ callbackUrl: "/" })}
+              className="hidden sm:inline-flex"
+            >
+              Salir
+            </Button>
+          ) : (
+            <Button
+              asChild
+              variant="ghost"
+              size="sm"
+              className="hidden sm:inline-flex"
+            >
+              <Link href="/user/signin">Entrar</Link>
+            </Button>
+          )}
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="md:hidden">
+                <Menu className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent>
+              <SheetHeader>
+                <SheetTitle>Primaveral Bordados</SheetTitle>
+              </SheetHeader>
+              <div className="mt-8 flex flex-col gap-5">
+                {links.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className="text-lg text-stone-700"
                   >
-                    {selectedMenu.map((item) => renderMobileMenuItem(item))}
-                  </Accordion>
-
-                  <div className="flex flex-col gap-3">
-                    <DarkModeSwitch />
-                    <Button asChild variant="outline">
-                      <Link
-                        href={session ? "/api/auth/signout" : "/user/signin"}
-                      >
-                        {session ? "Sign out" : "Sign in"}
-                      </Link>
-                    </Button>
-
-                    {!session && (
-                      <Button asChild>
-                        <Link href="/user/signup">Sign up</Link>
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </SheetContent>
-            </Sheet>
-          </div>
+                    {link.label}
+                  </Link>
+                ))}
+                {session ? (
+                  <button
+                    className="text-left text-lg text-stone-500"
+                    onClick={() => signOut({ callbackUrl: "/" })}
+                  >
+                    Cerrar sesión
+                  </button>
+                ) : (
+                  <Link href="/user/signin" className="text-lg text-stone-500">
+                    Entrar
+                  </Link>
+                )}
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
-    </section>
+    </header>
   );
-};
-
-const renderMenuItem = (item: MenuItem) => {
-  if (item.items) {
-    return (
-      <NavigationMenuItem key={item.title}>
-        <NavigationMenuTrigger>{item.title}</NavigationMenuTrigger>
-        <NavigationMenuContent className="bg-popover text-popover-foreground">
-          {item.items.map((subItem) => (
-            <NavigationMenuLink asChild key={subItem.title} className="w-80">
-              <SubMenuLink item={subItem} />
-            </NavigationMenuLink>
-          ))}
-        </NavigationMenuContent>
-      </NavigationMenuItem>
-    );
-  }
-
-  return (
-    <NavigationMenuItem key={item.title}>
-      <NavigationMenuLink
-        href={item.url}
-        className="group bg-background hover:bg-muted hover:text-accent-foreground inline-flex h-10 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors"
-      >
-        {item.title}
-      </NavigationMenuLink>
-    </NavigationMenuItem>
-  );
-};
-
-const renderMobileMenuItem = (item: MenuItem) => {
-  if (item.items) {
-    return (
-      <AccordionItem key={item.title} value={item.title} className="border-b-0">
-        <AccordionTrigger className="text-md py-0 font-semibold hover:no-underline">
-          {item.title}
-        </AccordionTrigger>
-        <AccordionContent className="mt-2">
-          {item.items.map((subItem) => (
-            <SubMenuLink key={subItem.title} item={subItem} />
-          ))}
-        </AccordionContent>
-      </AccordionItem>
-    );
-  }
-
-  return (
-    <a key={item.title} href={item.url} className="text-md font-semibold">
-      {item.title}
-    </a>
-  );
-};
-
-const SubMenuLink = ({ item }: { item: MenuItem }) => {
-  return (
-    <a
-      className="hover:bg-muted hover:text-accent-foreground flex flex-row gap-4 rounded-md p-3 leading-none no-underline transition-colors outline-none select-none"
-      href={item.url}
-    >
-      <div className="text-foreground">{item.icon}</div>
-      <div>
-        <div className="text-sm font-semibold">{item.title}</div>
-        {item.description && (
-          <p className="text-muted-foreground text-sm leading-snug">
-            {item.description}
-          </p>
-        )}
-      </div>
-    </a>
-  );
-};
-
-export { NavbarClient };
+}

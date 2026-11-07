@@ -1,203 +1,182 @@
 "use client";
 
-import { api } from "@/trpc/react";
-import { DataTable } from "@/components/data-table/data-table";
-import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
-import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
-import { Button } from "@/components/ui/button";
-import { useDataTable } from "@/hooks/use-data-table";
-import { Card, CardFooter, CardHeader, CardTitle } from "../ui/card";
-import Image from "next/image";
-import { ShoppingCart, Text } from "lucide-react";
-import { useCart } from "@/contexts/CartContext";
-import * as React from "react";
 import Link from "next/link";
-import type { Column, ColumnDef } from "@tanstack/react-table";
-import { parseAsString, useQueryState } from "nuqs";
+import { ArrowRight, Search, ShoppingBag, Sparkles } from "lucide-react";
+import { useMemo, useState } from "react";
+import { api } from "@/trpc/react";
+import type { RouterOutputs } from "@/trpc/react";
+import { useCart } from "@/contexts/CartContext";
 
-interface MenuItem {
-  id: string;
-  name: string;
-  description: string | null;
-  price: number;
-  currency: string;
-  available: boolean;
-  image: string | null;
-}
+const categories = ["Todos", "Bordados", "Vestidos", "Blusas", "Accesorios"];
 
-// Hook para detectar el tamaño de la pantalla
-const useMediaQuery = (query: string) => {
-  const [matches, setMatches] = React.useState(false);
+type Product = RouterOutputs["menu"]["getPublicMenuItems"][number];
 
-  React.useEffect(() => {
-    const mediaQuery = window.matchMedia(query);
-    const handler = (event: MediaQueryListEvent) => setMatches(event.matches);
-    setMatches(mediaQuery.matches);
-    mediaQuery.addEventListener("change", handler);
-    return () => mediaQuery.removeEventListener("change", handler);
-  }, [query]);
-
-  return matches;
-};
-
-// Componente para renderizar una card individual
-function MenuItemCard({ item }: { item: MenuItem }) {
+function ProductCard({ item }: { item: Product }) {
   const { addItem } = useCart();
-
   return (
-    <Link href={`/menu/${item.id}`}>
-      <Card className="flex h-auto min-h-[320px] w-full max-w-sm cursor-pointer flex-col gap-2 transition-shadow hover:shadow-lg">
-        <CardHeader className="flex flex-col items-center space-y-4">
-          <CardTitle className="text-center text-base font-semibold [word-break:break-word]">
-            {item.name}
-          </CardTitle>
-          <div className="flex h-[150px] w-[150px] items-center justify-center">
-            <Image
-              src={item.image ?? "/favicon.ico"}
-              width={150}
-              height={150}
-              alt={item.description ?? item.name}
-              className="h-full w-full rounded-md object-cover"
+    <article className="group">
+      <Link href={`/menu/${item.id}`} className="block">
+        <div className="relative aspect-[4/5] overflow-hidden rounded-[1.5rem] bg-[#eee8df]">
+          {item.image ? (
+            <img
+              src={item.image}
+              alt={item.name}
+              className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
             />
-          </div>
-          {/* Mostrar precio */}
-          <div className="text-center">
-            <span className="text-primary text-lg font-bold">
-              {item.currency}
-              {item.price.toFixed(2)}
+          ) : (
+            <div className="flex h-full items-center justify-center text-sm text-stone-500">
+              Primaveral Bordados
+            </div>
+          )}
+          {item.featured && (
+            <span className="absolute top-4 left-4 rounded-full bg-[#f7f1e8] px-3 py-1 text-xs font-medium text-stone-700">
+              Favorito
             </span>
+          )}
+        </div>
+        <div className="flex items-start justify-between gap-3 pt-4">
+          <div>
+            <h3 className="font-medium text-stone-900">{item.name}</h3>
+            <p className="mt-1 text-sm text-stone-500">{item.category}</p>
           </div>
-        </CardHeader>
-        <CardFooter className="mt-auto">
-          <Button
-            className="w-full text-xs"
-            size="sm"
-            disabled={!item.available}
-            onClick={(e) => {
-              e.preventDefault(); // Evitar navegación
-              e.stopPropagation();
-              addItem({
-                id: item.id,
-                title: item.name,
-                description: item.description ?? undefined,
-                imageUrl: item.image ?? "",
-                prefix: item.currency,
-                price: item.price,
-              });
-            }}
-          >
-            <ShoppingCart className="h-3 w-3" />
-            {item.available ? "Añadir" : "No disponible"}
-          </Button>
-        </CardFooter>
-      </Card>
-    </Link>
+          <p className="font-semibold text-stone-900">
+            {item.currency}
+            {item.price.toFixed(2)}
+          </p>
+        </div>
+      </Link>
+      <button
+        className="mt-3 flex w-full items-center justify-center gap-2 rounded-full border border-stone-300 px-4 py-2.5 text-sm font-medium transition hover:border-stone-900 hover:bg-stone-900 hover:text-white"
+        onClick={() =>
+          addItem({
+            id: item.id,
+            title: item.name,
+            description: item.description ?? undefined,
+            imageUrl: item.image ?? "",
+            prefix: item.currency,
+            price: item.price,
+          })
+        }
+      >
+        <ShoppingBag className="h-4 w-4" /> Añadir al carrito
+      </button>
+    </article>
   );
 }
 
 export default function Menu() {
-  const [name] = useQueryState("name", parseAsString.withDefault(""));
-
-  const isSmallScreen = useMediaQuery("(max-width: 768px)");
-  const isMediumScreen = useMediaQuery("(max-width: 1024px)");
-
+  const [query, setQuery] = useState("");
+  const [category, setCategory] = useState("Todos");
   const {
-    data: menuItems = [],
+    data: products = [],
     isLoading,
     error,
   } = api.menu.getPublicMenuItems.useQuery();
-
-  const numColumns = React.useMemo(() => {
-    if (isSmallScreen) return 1;
-    if (isMediumScreen) return 2;
-    return 4;
-  }, [isSmallScreen, isMediumScreen]);
-
-  // Filtrar datos del lado del cliente
-  const filteredData = React.useMemo(() => {
-    return menuItems.filter((item) => {
-      const matchesName =
-        name === "" || item.name.toLowerCase().includes(name.toLowerCase());
-
-      return matchesName;
-    });
-  }, [name, menuItems]);
-
-  const columns = React.useMemo<ColumnDef<MenuItem>[]>(
-    () => [
-      ...Array.from({ length: numColumns }, (_, i) => ({
-        id: `col${i + 1}`,
-        header: "Productos",
-        cell: ({ row }: { row: { index: number } }) => {
-          const item = filteredData[row.index * numColumns + i];
-          return item ? (
-            <MenuItemCard item={item} />
-          ) : (
-            <div className="h-[320px]"></div>
-          );
-        },
-        enableSorting: false,
-      })),
-      {
-        id: "name",
-        accessorKey: "name",
-        header: ({ column }: { column: Column<MenuItem, unknown> }) => (
-          <DataTableColumnHeader column={column} title="Nombre" />
-        ),
-        cell: ({ cell }) => (
-          <div className="hidden">{cell.getValue<MenuItem["name"]>()}</div>
-        ),
-        meta: {
-          label: "Nombre",
-          placeholder: "Buscar productos...",
-          variant: "text",
-          icon: Text,
-        },
-        enableColumnFilter: true,
-      },
-    ],
-    [filteredData, numColumns],
+  const filtered = useMemo(
+    () =>
+      products.filter(
+        (item) =>
+          (category === "Todos" || item.category === category) &&
+          item.name.toLowerCase().includes(query.toLowerCase()),
+      ),
+    [products, category, query],
   );
 
-  // Calcular número de filas necesarias para mostrar 4 items por fila
-  const rowData = React.useMemo<MenuItem[]>(() => {
-    const numberOfRows = Math.ceil(filteredData.length / numColumns);
-    const rows: MenuItem[] = [];
-
-    // Crear filas dummy, cada fila representa un grupo de 4 items
-    for (let i = 0; i < numberOfRows; i++) {
-      const firstItem = filteredData[i * numColumns];
-      if (firstItem) rows.push(firstItem);
-    }
-
-    return rows;
-  }, [filteredData, numColumns]);
-
-  const { table } = useDataTable<MenuItem>({
-    data: rowData,
-    columns,
-    pageCount: 1,
-    initialState: {
-      sorting: [{ id: "name", desc: false }],
-      columnVisibility: {
-        name: false,
-      },
-    },
-    getRowId: (row) => row.id,
-  });
-
-  if (isLoading) return <div>Cargando...</div>;
-  if (error) return <div>Error: {error.message}</div>;
-
   return (
-    <div className="data-table-container">
-      {/* Solo mostrar la toolbar con filtros */}
-      <DataTableToolbar table={table} />
+    <main>
+      <section className="mx-auto grid max-w-7xl gap-10 px-6 pt-10 pb-20 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:px-10 lg:pt-20">
+        <div>
+          <p className="mb-5 flex items-center gap-2 text-sm font-medium tracking-[0.2em] text-stone-500 uppercase">
+            <Sparkles className="h-4 w-4" /> Hecho para quedarse
+          </p>
+          <h1 className="font-display text-primary max-w-3xl text-6xl leading-[0.86] font-semibold tracking-tight sm:text-8xl">
+            Prendas con historia, bordadas para ti.
+          </h1>
+          <p className="mt-7 max-w-xl text-lg leading-8 text-stone-600">
+            Diseños honestos, detalles hechos a mano y piezas que acompañan tu
+            forma de ser.
+          </p>
+          <Link
+            href="#coleccion"
+            className="mt-8 inline-flex items-center gap-2 rounded-full bg-stone-900 px-6 py-3.5 text-sm font-medium text-white transition hover:bg-stone-700"
+          >
+            Ver colección <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+        <div className="bg-primary relative min-h-[420px] overflow-hidden rounded-[2rem] p-4">
+          <div className="stitch-border relative h-full min-h-[388px] overflow-hidden rounded-[1.5rem] bg-[#ad7662]">
+            <div className="absolute inset-0 [background-image:linear-gradient(45deg,transparent_45%,#f4dfc8_46%,#f4dfc8_49%,transparent_50%),linear-gradient(-45deg,transparent_45%,#f4dfc8_46%,#f4dfc8_49%,transparent_50%)] [background-size:34px_34px] opacity-30" />
+            <div className="absolute top-8 right-8 rounded-full border border-[#f4dfc8]/60 px-4 py-2 text-xs tracking-[0.2em] text-[#f4dfc8] uppercase">
+              pieza 01 / 04
+            </div>
+            <div className="absolute bottom-8 left-8 max-w-xs text-[#fff7ec]">
+              <p className="text-sm tracking-[0.2em] text-[#f4dfc8]/80 uppercase">
+                Nueva temporada
+              </p>
+              <p className="font-display mt-2 text-5xl leading-none font-semibold">
+                El detalle hace la diferencia.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
 
-      {/* Tabla con estilos invisibles - solo mostrar las cards */}
-      <div className="[&_table]:border-none [&_tbody_td]:border-none [&_tbody_td]:p-2 [&_tbody_tr]:border-none [&_thead]:hidden">
-        <DataTable table={table} />
-      </div>
-    </div>
+      <section id="coleccion" className="mx-auto max-w-7xl px-6 pb-24 lg:px-10">
+        <div className="flex flex-col gap-5 border-b border-stone-200 pb-6 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-sm tracking-[0.2em] text-stone-500 uppercase">
+              La colección
+            </p>
+            <h2 className="font-display text-primary mt-2 text-5xl font-semibold">
+              Encuentra tu próxima favorita
+            </h2>
+          </div>
+          <label className="flex items-center gap-2 rounded-full border border-stone-300 px-4 py-2 text-sm text-stone-500">
+            <Search className="h-4 w-4" />
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Buscar prendas"
+              className="w-36 bg-transparent outline-none placeholder:text-stone-400"
+            />
+          </label>
+        </div>
+        <div className="flex flex-wrap gap-2 py-6">
+          {categories.map((item) => (
+            <button
+              key={item}
+              onClick={() => setCategory(item)}
+              className={`rounded-full px-4 py-2 text-sm transition ${category === item ? "bg-stone-900 text-white" : "bg-stone-100 text-stone-600 hover:bg-stone-200"}`}
+            >
+              {item}
+            </button>
+          ))}
+        </div>
+        {isLoading ? (
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+            {[1, 2, 3, 4].map((item) => (
+              <div
+                key={item}
+                className="aspect-[4/5] animate-pulse rounded-[1.5rem] bg-stone-100"
+              />
+            ))}
+          </div>
+        ) : error ? (
+          <p className="rounded-2xl bg-red-50 p-5 text-red-700">
+            No pudimos cargar la colección. Intenta de nuevo.
+          </p>
+        ) : filtered.length ? (
+          <div className="grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
+            {filtered.map((item) => (
+              <ProductCard key={item.id} item={item} />
+            ))}
+          </div>
+        ) : (
+          <p className="py-16 text-center text-stone-500">
+            No encontramos productos con esa búsqueda.
+          </p>
+        )}
+      </section>
+    </main>
   );
 }

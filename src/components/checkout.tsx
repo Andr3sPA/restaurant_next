@@ -1,296 +1,277 @@
 "use client";
 
-// Componente de checkout que maneja la finalización de compras con formulario de datos del cliente, métodos de pago y simulación de campos de tarjeta de crédito
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import {
-  CheckCheckIcon,
-  CreditCard,
-  Loader2Icon,
-  Package,
-  Wallet2,
-} from "lucide-react";
-import { useEffect, useState } from "react";
-import { Card, CardContent } from "./ui/card";
-import { api } from "@/trpc/react";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
+  CreditCard,
+  Loader2,
+  LockKeyhole,
+  Minus,
+  Plus,
+  WalletCards,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { api } from "@/trpc/react";
+import { useCart } from "@/contexts/CartContext";
+import { Button } from "./ui/button";
+import { Card, CardContent } from "./ui/card";
+import {
   Form,
-  FormLabel,
-  FormItem,
-  FormField,
   FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
   FormMessage,
 } from "./ui/form";
-import { useRouter } from "next/navigation";
-import { useCart } from "@/contexts/CartContext";
-import ReturnButton from "@/components/ReturnButton";
+import { Input } from "./ui/input";
+import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
+import { Textarea } from "./ui/textarea";
 
 const schema = z.object({
-  address: z.coerce.string().min(6),
-  phone: z.coerce.string().min(6),
+  address: z.string().min(8, "Indica una dirección completa"),
+  phone: z.string().min(7, "Indica un teléfono válido"),
   paymentMethod: z.enum(["credit-card", "cash"]),
 });
 
 export function Checkout() {
-  const { items: cartItems, getTotalPrice, clearCart } = useCart();
-  const [subtotal, setSubtotal] = useState(0);
-  const [total, setTotal] = useState(0);
-  const [expiryDate, setExpiryDate] = useState("");
-
+  const router = useRouter();
+  const {
+    items,
+    isHydrated,
+    getTotalPrice,
+    clearCart,
+    updateQuantity,
+    removeItem,
+  } = useCart();
   const form = useForm<z.infer<typeof schema>>({
-    defaultValues: {
-      address: "",
-      phone: "",
-    },
     resolver: zodResolver(schema),
+    defaultValues: { paymentMethod: "cash" },
   });
-
-  const paymentMethod = form.watch("paymentMethod");
-
-  // Formatea la fecha de vencimiento de la tarjeta de crédito
-  const handleExpiryDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    const digitsOnly = value.replace(/\D/g, "");
-
-    if (digitsOnly.length === 0) {
-      setExpiryDate("");
-    } else if (digitsOnly.length <= 2) {
-      setExpiryDate(digitsOnly);
-    } else {
-      setExpiryDate(digitsOnly.slice(0, 2) + "/" + digitsOnly.slice(2, 4));
-    }
-  };
-
-  // Permite borrar el slash en la fecha de vencimiento con backspace
-  const handleExpiryDateKeyDown = (
-    e: React.KeyboardEvent<HTMLInputElement>,
-  ) => {
-    const currentValue = expiryDate;
-    const cursorPosition = (e.target as HTMLInputElement).selectionStart ?? 0;
-
-    if (e.key === "Backspace") {
-      if (cursorPosition === 4 && currentValue.length === 5) {
-        e.preventDefault();
-        setExpiryDate(currentValue.slice(0, 2));
-      } else if (cursorPosition === 3 && currentValue[2] === "/") {
-        e.preventDefault();
-        setExpiryDate(currentValue.slice(0, 1));
-      }
-    }
-  };
+  const createOrder = api.order.createNew.useMutation({
+    onSuccess: () => {
+      clearCart();
+    },
+  });
+  const subtotal = getTotalPrice();
 
   useEffect(() => {
-    // Calcula el subtotal y el total (con 10% de impuesto)
-    const calculatedSubtotal = getTotalPrice();
-    const calculatedTotal = calculatedSubtotal + calculatedSubtotal * 0.1;
-    setSubtotal(calculatedSubtotal);
-    setTotal(calculatedTotal);
-  }, [cartItems, getTotalPrice]);
-  const router = useRouter();
+    if (isHydrated && !items.length && !createOrder.isSuccess)
+      router.replace("/");
+  }, [isHydrated, items.length, createOrder.isSuccess, router]);
 
-  // Mutación para crear una nueva orden
-  const { mutate, isPending, isSuccess } = api.order.createNew.useMutation({
-    onSuccess: () => {
-      clearCart(); // Limpiar el carrito después de crear la orden exitosamente
-    },
-  });
+  if (!isHydrated) {
+    return (
+      <main className="mx-auto max-w-6xl px-6 py-24 text-center text-stone-500">
+        Cargando tu carrito...
+      </main>
+    );
+  }
+
+  if (createOrder.isSuccess) {
+    return (
+      <main className="mx-auto max-w-xl px-6 py-24 text-center">
+        <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-emerald-100 text-emerald-700">
+          <LockKeyhole />
+        </div>
+        <h1 className="mt-6 text-3xl font-medium">¡Pedido recibido!</h1>
+        <p className="mt-3 text-stone-500">
+          Te contactaremos para confirmar los detalles y el pago. Gracias por
+          elegir piezas hechas con calma.
+        </p>
+        <Button className="mt-8 rounded-full" onClick={() => router.push("/")}>
+          Volver a la tienda
+        </Button>
+      </main>
+    );
+  }
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <main className="container mx-auto grid flex-1 grid-cols-1 gap-8 px-6 py-12 md:grid-cols-3">
-        <div className="col-span-2">
-          <div className="mb-6 flex items-center gap-4">
-            <ReturnButton onClick={() => router.push("/")} />
-            <h1 className="text-3xl font-bold">Finalizar Compra</h1>
-          </div>
-          <Card className="p-0">
-            <CardContent className="p-8">
-              {isSuccess ? (
-                <div className="flex flex-col items-center gap-4">
-                  <h2 className="mb-6 text-2xl font-bold">
-                    ¡Pedido realizado!
-                  </h2>
-                  <p>Puedes continuar navegando o esperar tu pedido.</p>
-                  <div className="flex justify-between gap-4 p-4">
-                    <Button onClick={() => router.back()} variant={"secondary"}>
-                      Volver
-                    </Button>
-                    <Button onClick={() => router.push("/")}>
-                      Continuar navegando
-                    </Button>
+    <main className="mx-auto grid max-w-6xl gap-10 px-6 py-12 lg:grid-cols-[1fr_380px]">
+      <section>
+        <button
+          onClick={() => router.back()}
+          className="mb-8 text-sm text-stone-500 hover:text-stone-900"
+        >
+          ← Volver a la colección
+        </button>
+        <h1 className="text-4xl font-medium">Finalizar pedido</h1>
+        <p className="mt-2 text-stone-500">
+          Completa tus datos; el pago se coordinará contigo por ahora.
+        </p>
+        <Card className="mt-8 border-stone-200 shadow-none">
+          <CardContent className="p-6 sm:p-8">
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit((values) =>
+                  createOrder.mutate({
+                    ...values,
+                    items: items.map((item) => ({
+                      productId: item.id,
+                      quantity: item.quantity,
+                    })),
+                  }),
+                )}
+                className="space-y-6"
+              >
+                <FormField
+                  control={form.control}
+                  name="address"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Dirección de entrega</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          {...field}
+                          placeholder="Calle, número, ciudad"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Teléfono</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="+57 300 000 0000" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="paymentMethod"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Preferencia de pago</FormLabel>
+                      <FormControl>
+                        <RadioGroup
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          className="grid gap-3 sm:grid-cols-2"
+                        >
+                          <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-stone-200 p-4">
+                            <RadioGroupItem value="cash" />
+                            <WalletCards className="h-5 w-5 text-stone-500" />
+                            <span className="text-sm">Contraentrega</span>
+                          </label>
+                          <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-stone-200 p-4">
+                            <RadioGroupItem value="credit-card" />
+                            <CreditCard className="h-5 w-5 text-stone-500" />
+                            <span className="text-sm">
+                              Tarjeta (próximamente)
+                            </span>
+                          </label>
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                {createOrder.error && (
+                  <p className="rounded-lg bg-red-50 p-3 text-sm text-red-700">
+                    {createOrder.error.message}
+                  </p>
+                )}
+                <Button
+                  type="submit"
+                  disabled={createOrder.isPending || !items.length}
+                  className="w-full rounded-full"
+                >
+                  {createOrder.isPending ? (
+                    <Loader2 className="animate-spin" />
+                  ) : (
+                    "Confirmar pedido"
+                  )}
+                </Button>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
+      </section>
+      <aside>
+        <Card className="border-stone-200 shadow-none">
+          <CardContent className="p-6">
+            <h2 className="text-lg font-medium">Resumen</h2>
+            <div className="mt-5 space-y-4">
+              {items.map((item) => (
+                <div
+                  key={`${item.id}-${item.size}-${item.color}`}
+                  className="flex items-center gap-3"
+                >
+                  <div className="h-14 w-14 overflow-hidden rounded-lg bg-stone-100">
+                    {item.imageUrl && (
+                      <img
+                        src={item.imageUrl}
+                        alt=""
+                        className="h-full w-full object-cover"
+                      />
+                    )}
                   </div>
-                </div>
-              ) : (
-                <Form {...form}>
-                  <form
-                    onSubmit={form.handleSubmit((values) =>
-                      mutate({
-                        ...values,
-                        menuItemIds: cartItems.map((ci) => ci.id),
-                      }),
-                    )}
-                    className="grid grid-cols-2 gap-6"
-                  >
-                    {/* Campo de dirección */}
-                    <FormField
-                      control={form.control}
-                      name="address"
-                      render={({ field }) => (
-                        <FormItem className="col-span-2">
-                          <FormLabel>Dirección</FormLabel>
-                          <FormControl>
-                            <Textarea
-                              {...field}
-                              rows={3}
-                              placeholder="Calle Principal 123, Ciudad"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    {/* Campo de teléfono */}
-                    <FormField
-                      control={form.control}
-                      name="phone"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Teléfono</FormLabel>
-                          <FormControl>
-                            <Input {...field} placeholder="1234567890" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    {/* Selección de método de pago */}
-                    <FormField
-                      control={form.control}
-                      name="paymentMethod"
-                      render={({ field }) => (
-                        <FormItem className="col-span-2">
-                          <FormLabel>Método de Pago</FormLabel>
-                          <FormControl>
-                            <RadioGroup
-                              {...field}
-                              onValueChange={(value: "credit-card" | "cash") =>
-                                form.setValue("paymentMethod", value)
-                              }
-                              id="paymentMethod"
-                            >
-                              <div className="flex items-center gap-4">
-                                <RadioGroupItem
-                                  id="credit-card"
-                                  value="credit-card"
-                                />
-                                <FormLabel htmlFor="credit-card">
-                                  <CreditCard className="mr-2 h-6 w-6" />
-                                  Tarjeta de Crédito
-                                </FormLabel>
-                              </div>
-                              <div className="flex items-center gap-4">
-                                <RadioGroupItem id="cash" value="cash" />
-                                <FormLabel htmlFor="cash">
-                                  <Wallet2 className="mr-2 h-6 w-6" />
-                                  Efectivo
-                                </FormLabel>
-                              </div>
-                            </RadioGroup>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <div className="col-span-2">
-                      <Button
-                        disabled={isPending}
-                        type="submit"
-                        className="w-full"
-                      >
-                        {isPending ? (
-                          <Loader2Icon className="animate-spin" />
-                        ) : (
-                          "Realizar Pedido"
-                        )}
-                      </Button>
-                    </div>
-                    {/* Campos de tarjeta de crédito si corresponde */}
-                    {paymentMethod === "credit-card" && (
-                      <div className="col-span-2 mt-4 rounded-lg border bg-gray-50 p-4">
-                        <h3 className="mb-4 text-lg font-semibold">
-                          Información de Tarjeta de Crédito
-                        </h3>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="col-span-2">
-                            <FormLabel>Número de Tarjeta</FormLabel>
-                            <Input placeholder="1234 5678 9012 3456" />
-                          </div>
-                          <div>
-                            <FormLabel>Fecha de Vencimiento</FormLabel>
-                            <Input
-                              placeholder="MM/AA"
-                              value={expiryDate}
-                              onChange={handleExpiryDateChange}
-                              onKeyDown={handleExpiryDateKeyDown}
-                              maxLength={5}
-                            />
-                          </div>
-                          <div>
-                            <FormLabel>CVC</FormLabel>
-                            <Input placeholder="123" maxLength={3} />
-                          </div>
-                          <div className="col-span-2">
-                            <FormLabel>Nombre del Titular</FormLabel>
-                            <Input placeholder="Juan Pérez" />
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </form>
-                </Form>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-        <Card className="p-0">
-          <CardContent className="p-8">
-            <h2 className="mb-6 flex items-center text-2xl font-bold">
-              Resumen del Pedido
-              {isSuccess && <CheckCheckIcon color="lime" className="m-2" />}
-            </h2>
-            <div className="space-y-4">
-              <div className="flex justify-between">
-                <span>Subtotal</span>
-                <span>${subtotal.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between font-bold">
-                <span>Total</span>
-                <span>${total.toFixed(2)}</span>
-              </div>
-              <Separator />
-              <div className="space-y-2">
-                {/* Lista de productos en el carrito */}
-                {cartItems.map((item, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <Package className="h-5 w-5 text-gray-500" />
-                    <span>{item.title}</span>
-                    <span className="ml-auto">
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">{item.title}</p>
+                    <p className="text-sm text-stone-500">
                       {item.prefix}
                       {item.price.toFixed(2)}
-                    </span>
+                    </p>
+                    <div className="mt-1 flex items-center gap-2">
+                      <button
+                        onClick={() =>
+                          updateQuantity(
+                            item.id,
+                            item.quantity - 1,
+                            item.size,
+                            item.color,
+                          )
+                        }
+                        className="rounded-full border p-1"
+                      >
+                        <Minus className="h-3 w-3" />
+                      </button>
+                      <span className="text-xs">{item.quantity}</span>
+                      <button
+                        onClick={() =>
+                          updateQuantity(
+                            item.id,
+                            item.quantity + 1,
+                            item.size,
+                            item.color,
+                          )
+                        }
+                        className="rounded-full border p-1"
+                      >
+                        <Plus className="h-3 w-3" />
+                      </button>
+                      <button
+                        onClick={() =>
+                          removeItem(item.id, item.size, item.color)
+                        }
+                        className="ml-2 text-xs text-stone-400 hover:text-red-600"
+                      >
+                        Quitar
+                      </button>
+                    </div>
                   </div>
-                ))}
-              </div>
+                  <p className="text-sm font-medium">
+                    {item.prefix}
+                    {(item.price * item.quantity).toFixed(2)}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <div className="mt-6 flex justify-between border-t border-stone-200 pt-5 font-semibold">
+              <span>Total</span>
+              <span>${subtotal.toFixed(2)}</span>
             </div>
           </CardContent>
         </Card>
-      </main>
-    </div>
+      </aside>
+    </main>
   );
 }

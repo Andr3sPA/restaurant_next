@@ -13,7 +13,7 @@ export default async function MenuItemPage({
 
   // Renderiza los detalles del elemento del menú
   return (
-    <div className="flex h-full min-h-[500px] w-full items-center justify-center">
+    <div className="min-h-screen">
       {item ? (
         <div className="w-full max-w-2xl">
           <MenuItemDetails
@@ -22,8 +22,12 @@ export default async function MenuItemPage({
             description={item.description ?? "No description"}
             prefix={item.currency}
             price={item.price}
-            inStock={item.available}
+            inStock={item.available && item.stock > 0}
+            stockCount={item.stock}
             imageUrl={item.image ?? undefined}
+            category={item.category}
+            sizes={item.sizes ?? []}
+            colors={item.colors ?? []}
           />
         </div>
       ) : (

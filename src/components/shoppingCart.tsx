@@ -8,7 +8,6 @@ import {
   DialogTitle,
 } from "@headlessui/react";
 import { XMarkIcon, ShoppingCartIcon } from "@heroicons/react/24/outline";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/contexts/CartContext";
 
@@ -85,14 +84,17 @@ export default function ShoppingCart() {
                             role="list"
                             className="-my-6 divide-y divide-gray-200"
                           >
-                            {cartItems.map((item, index) => (
-                              <li key={index} className="flex py-6">
+                            {cartItems.map((item) => (
+                              <li
+                                key={`${item.id}-${item.size}-${item.color}`}
+                                className="flex py-6"
+                              >
                                 <div className="size-24 shrink-0 overflow-hidden rounded-md border border-gray-200">
-                                  <Image
+                                  <img
                                     alt={item.title ?? "Product image"}
-                                    src={item.imageUrl}
-                                    width={96}
-                                    height={96}
+                                    src={item.imageUrl || "/favicon.ico"}
+                                    width="96"
+                                    height="96"
                                     className="size-full object-cover"
                                     onError={(e) => {
                                       const target =
@@ -120,13 +122,21 @@ export default function ShoppingCart() {
                                     </p>
                                   </div>
                                   <div className="flex flex-1 items-end justify-between text-sm">
-                                    <p className="text-gray-500">Qty 1</p>
+                                    <p className="text-gray-500">
+                                      Cantidad {item.quantity}
+                                    </p>
 
                                     <div className="flex">
                                       <button
                                         type="button"
                                         className="font-medium text-indigo-600 hover:text-indigo-500"
-                                        onClick={() => removeItem(index)}
+                                        onClick={() =>
+                                          removeItem(
+                                            item.id,
+                                            item.size,
+                                            item.color,
+                                          )
+                                        }
                                       >
                                         Remove
                                       </button>

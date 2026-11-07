@@ -41,7 +41,7 @@ export default function EditMenuItemDialog({
   );
   const [currency, setCurrency] = React.useState(menuItem.currency);
   const [price, setPrice] = React.useState(menuItem.price.toString());
-  const [image, setImage] = React.useState<string>("");
+  const [image, setImage] = React.useState(menuItem.image ?? "");
 
   const utils = api.useUtils();
 
@@ -56,17 +56,6 @@ export default function EditMenuItemDialog({
         toast.error(`Error al actualizar: ${error.message}`);
       },
     });
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setImage(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -136,12 +125,12 @@ export default function EditMenuItemDialog({
             </div>
           </div>
           <div>
-            <Label htmlFor="image">Nueva Imagen (opcional)</Label>
+            <Label htmlFor="image">URL de imagen (opcional)</Label>
             <Input
               id="image"
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
+              type="url"
+              value={image}
+              onChange={(e) => setImage(e.target.value)}
             />
           </div>
           <div className="flex justify-end gap-2">
